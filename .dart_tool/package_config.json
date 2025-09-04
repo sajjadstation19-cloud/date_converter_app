@@ -152,12 +152,6 @@
       "languageVersion": "3.3"
     },
     {
-      "name": "jhijri",
-      "rootUri": "file:///C:/Users/Sajja/AppData/Local/Pub/Cache/hosted/pub.dev/jhijri-1.0.0",
-      "packageUri": "lib/",
-      "languageVersion": "3.0"
-    },
-    {
       "name": "json_annotation",
       "rootUri": "file:///C:/Users/Sajja/AppData/Local/Pub/Cache/hosted/pub.dev/json_annotation-4.9.0",
       "packageUri": "lib/",
