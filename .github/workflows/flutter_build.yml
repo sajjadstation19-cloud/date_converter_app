@@ -2,27 +2,40 @@ name: Flutter CI
 
 on:
   push:
-    branches: [ main ]   # كلما تسوي push على main يشتغل
+    branches: [ main ]   # يشتغل كلما تسوي push على main
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3   # يسحب الكود من المستودع
+      - name: Checkout source code
+        uses: actions/checkout@v4
 
-      - uses: subosito/flutter-action@v2
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.0'   # غيّر حسب نسخة Flutter اللي تستخدمها
+          flutter-version: '3.24.0'
 
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build APK
-        run: flutter build apk --release
-        
-      - name: Upload APK
+      # ✅ بناء نسخة Debug (أسهل بالبداية)
+      - name: Build Debug APK
+        run: flutter build apk --debug
+
+      - name: Upload Debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: release-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          name: debug-apk
+          path: build/app/outputs/flutter-apk/app-debug.apk
+
+      # ✅ إذا أردت Release بعدين (لازم keystore)
+      # - name: Build Release APK
+      #   run: flutter build apk --release
+
+      # - name: Upload Release APK
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: release-apk
+      #     path: build/app/outputs/flutter-apk/app-release.apk
