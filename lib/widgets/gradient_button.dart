@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+/// A customizable gradient button with press animations.
 class GradientButton extends StatefulWidget {
   final String label;
   final IconData? icon;
@@ -48,11 +49,13 @@ class _GradientButtonState extends State<GradientButton>
     super.dispose();
   }
 
-  void _onTapDown(_) {
+  /// Handle tap down events. Provides an explicit type annotation.
+  void _onTapDown(TapDownDetails details) {
     if (widget.onPressed != null) _controller.forward();
   }
 
-  void _onTapUp(_) {
+  /// Handle tap up events. Provides an explicit type annotation.
+  void _onTapUp(TapUpDetails details) {
     if (widget.onPressed != null) _controller.reverse();
   }
 
@@ -61,7 +64,7 @@ class _GradientButtonState extends State<GradientButton>
     final isDisabled = widget.onPressed == null;
 
     const gradient = LinearGradient(
-      colors: [Color(0xFF66BB6A), Color(0xFF4CAF50)], // أخضر فاتح → داكن
+      colors: [Color(0xFF66BB6A), Color(0xFF4CAF50)], // Light → dark green
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
     );
