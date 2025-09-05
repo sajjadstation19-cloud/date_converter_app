@@ -9,7 +9,7 @@ import 'utils/ad_helper.dart'; // ✅ إعلان App Open
 import 'package:date_converter_app/l10n/app_localizations.dart';
 
 // Screens & Providers
-import 'screens/splash_screen.dart'; // ✅ نستخدم SplashScreen كبداية
+import 'screens/splash_screen.dart'; // ✅ شاشة البداية
 import 'providers/theme_provider.dart';
 import 'providers/locale_provider.dart';
 
@@ -50,15 +50,14 @@ class MyApp extends StatelessWidget {
     final themeProv = context.watch<ThemeProvider>();
     final localeProv = context.watch<LocaleProvider>();
 
-    // ✅ بعد ما تجهز الشاشة استعرض إعلان الفتح
+    // ✅ استعرض إعلان الفتح بعد أول إطار
     WidgetsBinding.instance.addPostFrameCallback((_) {
       AdHelper.showAppOpenAd();
     });
 
-    final t = AppLocalizations.of(context);
-
     return MaterialApp(
-      title: t.appTitle.isNotEmpty ? t.appTitle : 'Date Converter',
+      // 🔹 عنوان افتراضي (لا نستعمل AppLocalizations هنا حتى ما ينهار)
+      title: 'Date Converter',
       debugShowCheckedModeBanner: false,
 
       // 🌍 اللغة
@@ -89,7 +88,7 @@ class MyApp extends StatelessWidget {
         ),
         cardTheme: CardThemeData(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.all(Radius.circular(16)),
           ),
           elevation: 2,
         ),
@@ -109,13 +108,13 @@ class MyApp extends StatelessWidget {
         ),
         cardTheme: CardThemeData(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.all(Radius.circular(16)),
           ),
           elevation: 2,
         ),
       ),
 
-      // 🏠 شاشة البداية → بعدها تتحول لـ HomeScreen
+      // 🏠 شاشة البداية
       home: const SplashScreen(),
     );
   }
