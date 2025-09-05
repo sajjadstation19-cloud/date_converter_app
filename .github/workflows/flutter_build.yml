@@ -3,6 +3,7 @@ name: Flutter CI
 on:
   push:
     branches: [ main ]   # يشتغل كلما تسوي push على main
+  workflow_dispatch:      # 🔹 هذا يضيف زر Run workflow للتشغيل اليدوي
 
 jobs:
   build:
@@ -15,12 +16,12 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.0'
+          flutter-version: '3.24.0'   # غيرها حسب نسختك
 
       - name: Install dependencies
         run: flutter pub get
 
-      # ✅ بناء نسخة Debug (أسهل بالبداية)
+      # ✅ بناء نسخة Debug
       - name: Build Debug APK
         run: flutter build apk --debug
 
