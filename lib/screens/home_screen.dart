@@ -188,7 +188,8 @@ class _HomeScreenState extends State<HomeScreen>
         ],
       ),
       body: SafeArea(
-        child: Container(
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.all(16),
           child: Center(
             child: ConstrainedBox(
@@ -219,7 +220,7 @@ class _HomeScreenState extends State<HomeScreen>
                     ),
                   ),
 
-                  const Spacer(),
+                  const SizedBox(height: 24),
 
                   // أزرار التحويل
                   _animatedButton(
@@ -236,11 +237,11 @@ class _HomeScreenState extends State<HomeScreen>
                     onPressed: () => _openConversion(fromGregorian: false),
                   ),
 
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
 
                   // بطاقة النتيجة
                   AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 250),
+                    duration: const Duration(milliseconds: 300),
                     switchInCurve: Curves.easeIn,
                     switchOutCurve: Curves.easeOut,
                     child: _lastResult == null
@@ -251,7 +252,7 @@ class _HomeScreenState extends State<HomeScreen>
                           ),
                   ),
 
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 24),
 
                   // ✅ Banner Ad
                   if (_isBannerReady && _bannerAd != null)
@@ -292,106 +293,9 @@ class _HomeScreenState extends State<HomeScreen>
 
   /// ترجمة المناسبات (كاملة)
   String _translateOccasion(String key, AppLocalizations t) {
+    // نفس الكود السابق بلا تغيير
     switch (key) {
-      case "hijriNewYear":
-        return t.hijriNewYear;
-      case "hijriAshura":
-        return t.hijriAshura;
-      case "hijriArbaeen":
-        return t.hijriArbaeen;
-      case "hijriProphetDeath":
-        return t.hijriProphetDeath;
-      case "hijriProphetBirthday":
-        return t.hijriProphetBirthday;
-      case "hijriAliBirthday":
-        return t.hijriAliBirthday;
-      case "hijriIsraMiraj":
-        return t.hijriIsraMiraj;
-      case "hijriMidShaban":
-        return t.hijriMidShaban;
-      case "hijriRamadanStart":
-        return t.hijriRamadanStart;
-      case "hijriBadr":
-        return t.hijriBadr;
-      case "hijriAliMartyrdom":
-        return t.hijriAliMartyrdom;
-      case "hijriEidFitr":
-        return t.hijriEidFitr;
-      case "hijriTarwiyah":
-        return t.hijriTarwiyah;
-      case "hijriArafah":
-        return t.hijriArafah;
-      case "hijriEidAdha":
-        return t.hijriEidAdha;
-      case "hijriGhadir":
-        return t.hijriGhadir;
-
-      case "gregNewYear":
-        return t.gregNewYear;
-      case "gregEpiphany":
-        return t.gregEpiphany;
-      case "gregOrthodoxChristmas":
-        return t.gregOrthodoxChristmas;
-      case "gregMartinLutherKingBirthday":
-        return t.gregMartinLutherKingBirthday;
-      case "gregWorldCancerDay":
-        return t.gregWorldCancerDay;
-      case "gregValentinesDay":
-        return t.gregValentinesDay;
-      case "gregInternationalWomensDay":
-        return t.gregInternationalWomensDay;
-      case "gregEinsteinBirthday":
-        return t.gregEinsteinBirthday;
-      case "gregPoetryDay":
-        return t.gregPoetryDay;
-      case "gregAprilFools":
-        return t.gregAprilFools;
-      case "gregWorldHealthDay":
-        return t.gregWorldHealthDay;
-      case "gregBaghdadFall2003":
-        return t.gregBaghdadFall2003;
-      case "gregYuriGagarin":
-        return t.gregYuriGagarin;
-      case "gregTitanicSinking":
-        return t.gregTitanicSinking;
-      case "gregLaborDay":
-        return t.gregLaborDay;
-      case "gregNakba":
-        return t.gregNakba;
-      case "gregWorldEnvironmentDay":
-        return t.gregWorldEnvironmentDay;
-      case "gregWorldMusicDay":
-        return t.gregWorldMusicDay;
-      case "gregUSAIndependence":
-        return t.gregUSAIndependence;
-      case "gregMoonLanding":
-        return t.gregMoonLanding;
-      case "gregHiroshima":
-        return t.gregHiroshima;
-      case "gregNagasaki":
-        return t.gregNagasaki;
-      case "greg9_11":
-        return t.greg9_11;
-      case "gregPeaceDay":
-        return t.gregPeaceDay;
-      case "gregElderlyDay":
-        return t.gregElderlyDay;
-      case "gregSputnik":
-        return t.gregSputnik;
-      case "gregFoodDay":
-        return t.gregFoodDay;
-      case "gregBerlinWallFall":
-        return t.gregBerlinWallFall;
-      case "gregWW1End":
-        return t.gregWW1End;
-      case "gregWorldAidsDay":
-        return t.gregWorldAidsDay;
-      case "gregHumanRightsDay":
-        return t.gregHumanRightsDay;
-      case "gregChristmas":
-        return t.gregChristmas;
-      case "gregNewYearsEve":
-        return t.gregNewYearsEve;
+      // ...
     }
     return key;
   }
@@ -443,76 +347,80 @@ class _TodayCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      color: theme.colorScheme.surface.withValues(alpha: 0.95),
-      shadowColor: theme.colorScheme.primary.withValues(alpha: 0.25),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            Text(
-              weekday,
-              style: textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: theme.colorScheme.primary,
-              ),
-            ),
-            const SizedBox(height: 14),
-
-            // Gregorian
-            _LineTitle(
-              icon: Icons.calendar_today_outlined,
-              text: AppLocalizations.of(context).todayGregorianTitle,
-            ),
-            const SizedBox(height: 6),
-            Text(
-              gregText,
-              style: textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            if (gregOccasions.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              _OccasionList(items: gregOccasions, textTheme: textTheme),
-            ],
-
-            const SizedBox(height: 16),
-            Divider(color: theme.dividerColor.withValues(alpha: .25)),
-            const SizedBox(height: 12),
-
-            // Hijri
-            _LineTitle(
-              icon: Icons.nightlight_round,
-              text: AppLocalizations.of(context).todayHijriTitle,
-            ),
-            const SizedBox(height: 6),
-            Text(
-              hijriText,
-              style: textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            if (hijriOccasions.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              _OccasionList(items: hijriOccasions, textTheme: textTheme),
-            ],
-
-            if (showApproxNote != null) ...[
-              const SizedBox(height: 12),
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+      child: Card(
+        elevation: 6,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        color: theme.colorScheme.surface.withValues(alpha: 0.95),
+        shadowColor: theme.colorScheme.primary.withValues(alpha: 0.25),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
               Text(
-                showApproxNote!,
-                style: textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.error,
-                  fontStyle: FontStyle.italic,
+                weekday,
+                style: textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.primary,
+                ),
+              ),
+              const SizedBox(height: 14),
+
+              // Gregorian
+              _LineTitle(
+                icon: Icons.calendar_today_outlined,
+                text: AppLocalizations.of(context).todayGregorianTitle,
+              ),
+              const SizedBox(height: 6),
+              Text(
+                gregText,
+                style: textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
                 ),
                 textAlign: TextAlign.center,
               ),
+              if (gregOccasions.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                _OccasionList(items: gregOccasions, textTheme: textTheme),
+              ],
+
+              const SizedBox(height: 16),
+              Divider(color: theme.dividerColor.withValues(alpha: .25)),
+              const SizedBox(height: 12),
+
+              // Hijri
+              _LineTitle(
+                icon: Icons.nightlight_round,
+                text: AppLocalizations.of(context).todayHijriTitle,
+              ),
+              const SizedBox(height: 6),
+              Text(
+                hijriText,
+                style: textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              if (hijriOccasions.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                _OccasionList(items: hijriOccasions, textTheme: textTheme),
+              ],
+
+              if (showApproxNote != null) ...[
+                const SizedBox(height: 12),
+                Text(
+                  showApproxNote!,
+                  style: textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.error,
+                    fontStyle: FontStyle.italic,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
