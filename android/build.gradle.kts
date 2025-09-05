@@ -1,8 +1,10 @@
+// android/build.gradle.kts
+
 plugins {
     id("com.android.application") version "8.7.3" apply false
-    
     id("org.jetbrains.kotlin.android") version "2.1.0" apply false
-    i
+    // إذا تحتاج Firebase أو Google Services أضف هنا مثلاً:
+    // id("com.google.gms.google-services") version "4.4.2" apply false
 }
 
 allprojects {
@@ -13,6 +15,7 @@ allprojects {
     }
 }
 
+// يغيّر مكان build directory حتى يكون مشترك لكل الموديولات
 val newBuildDir: Directory = rootProject.layout.buildDirectory.dir("../../build").get()
 rootProject.layout.buildDirectory.value(newBuildDir)
 
