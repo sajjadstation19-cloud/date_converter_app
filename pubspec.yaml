@@ -16,7 +16,7 @@ dependencies:
   hijri: ^3.0.0
   path_provider: ^2.1.4
   share_plus: ^11.1.0
-
+  jhijri: ^1.0.0
   google_mobile_ads: ^6.0.0
 
 
