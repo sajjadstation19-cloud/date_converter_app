@@ -35,6 +35,9 @@ class _HomeScreenState extends State<HomeScreen>
   // ✅ Interstitial Ad counter
   int _conversionCount = 0;
 
+  // ✅ انتظار إعلان المزيد
+  bool _isLoadingAd = false;
+
   @override
   void initState() {
     super.initState();
@@ -45,11 +48,11 @@ class _HomeScreenState extends State<HomeScreen>
 
     _fadeIn = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
     _slideUp = Tween<Offset>(
-      begin: const Offset(0, .15),
+      begin: const Offset(0, .12),
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
     _scaleIn = Tween<double>(
-      begin: .98,
+      begin: .97,
       end: 1,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
 
@@ -77,14 +80,18 @@ class _HomeScreenState extends State<HomeScreen>
   /// إعلان مكافأة (إجباري عند الضغط على زر المزيد)
   void _showRewardedAd() {
     Feedback.forTap(context);
+    setState(() => _isLoadingAd = true);
 
     AdHelper.showRewardedInterstitialAd(() {
+      setState(() => _isLoadingAd = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("🎬 ${AppLocalizations.of(context).watchAdReward}"),
           behavior: SnackBarBehavior.floating,
         ),
       );
+    }, onFail: () {
+      setState(() => _isLoadingAd = false);
     });
   }
 
@@ -124,9 +131,14 @@ class _HomeScreenState extends State<HomeScreen>
     // تاريخ اليوم
     final today = DateUtilsX.getToday();
 
+    // ✅ اختيار اللغة
+    final isAr = Localizations.localeOf(context).languageCode == "ar";
+
     // ميلادي
     final g = today.gregorian;
-    final gMonthName = DateUtilsX.gregorianMonthsAr[g.month - 1];
+    final gMonthName = isAr
+        ? DateUtilsX.gregorianMonthsAr[g.month - 1]
+        : DateUtilsHelper.getMonthName(g.month);
     final gregText = '${g.year} ($gMonthName ${g.day})';
 
     // هجري
@@ -144,14 +156,20 @@ class _HomeScreenState extends State<HomeScreen>
     final gregorianOccasions =
         gregKeys.map((k) => _translateOccasion(k, t)).toList();
 
+    // ✅ اختيار اليوم حسب اللغة
+    final weekday = isAr ? today.weekdayAr : today.weekdayEn;
+
     return Scaffold(
       appBar: AppBar(
-        leading: const Hero(
-          tag: "app_logo",
-          child: Icon(
-            Icons.calendar_month,
-            color: Colors.white,
-            size: 28,
+        leading: InkWell(
+          onTap: () => Feedback.forTap(context),
+          child: const Hero(
+            tag: "app_logo",
+            child: Icon(
+              Icons.calendar_month,
+              color: Colors.white,
+              size: 28,
+            ),
           ),
         ),
         title: Hero(
@@ -174,6 +192,7 @@ class _HomeScreenState extends State<HomeScreen>
             icon: const Icon(Icons.settings, color: Colors.white),
             tooltip: t.settings,
             onPressed: () {
+              Feedback.forTap(context);
               showModalBottomSheet(
                 context: context,
                 useSafeArea: true,
@@ -187,81 +206,92 @@ class _HomeScreenState extends State<HomeScreen>
           ),
         ],
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.all(16),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 720),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // بطاقة اليوم
-                  SlideTransition(
-                    position: _slideUp,
-                    child: FadeTransition(
-                      opacity: _fadeIn,
-                      child: ScaleTransition(
-                        scale: _scaleIn,
-                        child: _TodayCard(
-                          weekday: today.weekdayAr,
-                          gregTitle: t.todayGregorianTitle,
-                          gregText: gregText,
-                          gregOccasions: gregorianOccasions,
-                          hijriTitle: t.todayHijriTitle,
-                          hijriText: hijriText,
-                          hijriOccasions: hijriOccasions,
-                          showApproxNote:
-                              today.approximate ? t.noteAccuracy : null,
-                          textTheme: textTheme,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFFF8F8F5), Color(0xFFE9F3EB)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.all(16),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 720),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // بطاقة اليوم
+                    SlideTransition(
+                      position: _slideUp,
+                      child: FadeTransition(
+                        opacity: _fadeIn,
+                        child: ScaleTransition(
+                          scale: _scaleIn,
+                          child: _TodayCard(
+                            weekday: weekday,
+                            gregTitle:
+                                "${t.todayGregorianTitle} ${t.todayWord}", // ✅ إضافة كلمة اليوم
+                            gregText: gregText,
+                            gregOccasions: gregorianOccasions,
+                            hijriTitle:
+                                "${t.todayHijriTitle} ${t.todayWord}", // ✅ إضافة كلمة اليوم
+                            hijriText: hijriText,
+                            hijriOccasions: hijriOccasions,
+                            showApproxNote:
+                                today.approximate ? t.noteAccuracy : null,
+                            textTheme: textTheme,
+                          ),
                         ),
                       ),
                     ),
-                  ),
 
-                  const SizedBox(height: 24),
+                    const SizedBox(height: 24),
 
-                  // أزرار التحويل
-                  _animatedButton(
-                    context: context,
-                    icon: Icons.calendar_today,
-                    label: t.convertFromGregorian,
-                    onPressed: () => _openConversion(fromGregorian: true),
-                  ),
-                  const SizedBox(height: 12),
-                  _animatedButton(
-                    context: context,
-                    icon: Icons.calendar_month,
-                    label: t.convertFromHijri,
-                    onPressed: () => _openConversion(fromGregorian: false),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // بطاقة النتيجة
-                  AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 300),
-                    switchInCurve: Curves.easeIn,
-                    switchOutCurve: Curves.easeOut,
-                    child: _lastResult == null
-                        ? const SizedBox.shrink()
-                        : DateResultCard(
-                            key: ValueKey(_lastResult),
-                            result: _lastResult!,
-                          ),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // ✅ Banner Ad
-                  if (_isBannerReady && _bannerAd != null)
-                    SizedBox(
-                      height: _bannerAd!.size.height.toDouble(),
-                      width: _bannerAd!.size.width.toDouble(),
-                      child: AdWidget(ad: _bannerAd!),
+                    // أزرار التحويل
+                    _animatedButton(
+                      context: context,
+                      icon: Icons.calendar_today,
+                      label: t.convertFromGregorian,
+                      onPressed: () => _openConversion(fromGregorian: true),
                     ),
-                ],
+                    const SizedBox(height: 12),
+                    _animatedButton(
+                      context: context,
+                      icon: Icons.nightlight_round,
+                      label: t.convertFromHijri,
+                      onPressed: () => _openConversion(fromGregorian: false),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // بطاقة النتيجة
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 300),
+                      switchInCurve: Curves.easeIn,
+                      switchOutCurve: Curves.easeOut,
+                      child: _lastResult == null
+                          ? const SizedBox.shrink()
+                          : DateResultCard(
+                              key: ValueKey(_lastResult),
+                              result: _lastResult!,
+                            ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // ✅ Banner Ad
+                    if (_isBannerReady && _bannerAd != null)
+                      SizedBox(
+                        height: _bannerAd!.size.height.toDouble(),
+                        width: _bannerAd!.size.width.toDouble(),
+                        child: AdWidget(ad: _bannerAd!),
+                      ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -273,17 +303,19 @@ class _HomeScreenState extends State<HomeScreen>
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            IconButton(
-              icon: const Icon(Icons.home, color: Colors.white),
-              tooltip: t.home,
-              onPressed: () {
-                setState(() {}); // يرجع للواجهة الرئيسية
+            _bottomNavItem(
+              icon: Icons.home,
+              label: t.home,
+              onTap: () {
+                Feedback.forTap(context); // ✅ هتزاز
+                setState(() {});
               },
             ),
-            IconButton(
-              icon: const Icon(Icons.card_giftcard, color: Colors.white),
-              tooltip: t.moreButton,
-              onPressed: _showRewardedAd, // ✅ إعلان مكافأة إجباري
+            _bottomNavItem(
+              icon: Icons.card_giftcard,
+              label: t.moreButton,
+              onTap: _showRewardedAd,
+              showLoader: _isLoadingAd, // ✅ تحميل أثناء الإعلان
             ),
           ],
         ),
@@ -293,9 +325,10 @@ class _HomeScreenState extends State<HomeScreen>
 
   /// ترجمة المناسبات (كاملة)
   String _translateOccasion(String key, AppLocalizations t) {
-    // نفس الكود السابق بلا تغيير
     switch (key) {
-      // ...
+      case "hijriNewYear":
+        return t.hijriNewYear;
+      // ... باقي الحالات مثل نسختك
     }
     return key;
   }
@@ -313,7 +346,57 @@ class _HomeScreenState extends State<HomeScreen>
         opacity: _fadeIn,
         child: ScaleTransition(
           scale: _scaleIn,
-          child: GradientButton(icon: icon, label: label, onPressed: onPressed),
+          child: GestureDetector(
+            onTap: () {
+              Feedback.forTap(context); // ✅ هتزاز
+              onPressed();
+            },
+            child: GradientButton(
+              icon: icon,
+              label: label,
+              onPressed: onPressed,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// عنصر Bottom Navigation مخصص
+  Widget _bottomNavItem({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    bool showLoader = false,
+  }) {
+    return InkWell(
+      onTap: () {
+        Feedback.forTap(context); // ✅ هتزاز
+        onTap();
+      },
+      borderRadius: BorderRadius.circular(12),
+      splashColor: Colors.white24,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            showLoader
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : Icon(icon, color: Colors.white, size: 26),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: const TextStyle(color: Colors.white, fontSize: 13),
+            ),
+          ],
         ),
       ),
     );
@@ -351,10 +434,10 @@ class _TodayCard extends StatelessWidget {
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeOut,
       child: Card(
-        elevation: 6,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        elevation: 8,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         color: theme.colorScheme.surface.withValues(alpha: 0.95),
-        shadowColor: theme.colorScheme.primary.withValues(alpha: 0.25),
+        shadowColor: theme.colorScheme.primary.withValues(alpha: 0.2),
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -371,7 +454,8 @@ class _TodayCard extends StatelessWidget {
               // Gregorian
               _LineTitle(
                 icon: Icons.calendar_today_outlined,
-                text: AppLocalizations.of(context).todayGregorianTitle,
+                iconColor: Colors.blueAccent,
+                text: gregTitle,
               ),
               const SizedBox(height: 6),
               Text(
@@ -393,7 +477,8 @@ class _TodayCard extends StatelessWidget {
               // Hijri
               _LineTitle(
                 icon: Icons.nightlight_round,
-                text: AppLocalizations.of(context).todayHijriTitle,
+                iconColor: Colors.deepPurple,
+                text: hijriTitle,
               ),
               const SizedBox(height: 6),
               Text(
@@ -429,8 +514,10 @@ class _TodayCard extends StatelessWidget {
 
 class _LineTitle extends StatelessWidget {
   final IconData icon;
+  final Color iconColor;
   final String text;
-  const _LineTitle({required this.icon, required this.text});
+  const _LineTitle(
+      {required this.icon, required this.iconColor, required this.text});
 
   @override
   Widget build(BuildContext context) {
@@ -439,7 +526,7 @@ class _LineTitle extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(icon, size: 18, color: theme.colorScheme.primary),
+        Icon(icon, size: 20, color: iconColor),
         const SizedBox(width: 8),
         Text(
           text,

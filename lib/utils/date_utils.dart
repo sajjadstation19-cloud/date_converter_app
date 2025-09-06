@@ -22,7 +22,8 @@ class TodayDates {
 class DateUtilsX {
   DateUtilsX._();
 
-  static const List<String> _weekdaysAr = [
+  /// أيام الأسبوع بالعربي
+  static const List<String> weekdaysAr = [
     'الاثنين',
     'الثلاثاء',
     'الأربعاء',
@@ -32,7 +33,8 @@ class DateUtilsX {
     'الأحد',
   ];
 
-  static const List<String> _weekdaysEn = [
+  /// أيام الأسبوع بالإنكليزي
+  static const List<String> weekdaysEn = [
     'Monday',
     'Tuesday',
     'Wednesday',
@@ -58,6 +60,22 @@ class DateUtilsX {
     'ديسمبر',
   ];
 
+  /// أشهر ميلادية بالإنكليزي (ثابتة بدل الاعتماد فقط على intl)
+  static const List<String> gregorianMonthsEn = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ];
+
   /// أشهر هجرية بالعربي
   static const List<String> hijriMonthsAr = [
     'محرم',
@@ -81,46 +99,29 @@ class DateUtilsX {
     return TodayDates(
       gregorian: now,
       hijri: hijri,
-      weekdayAr: weekdayArOf(now),
-      weekdayEn: weekdayEnOf(now),
+      weekdayAr: weekdaysAr[now.weekday - 1],
+      weekdayEn: weekdaysEn[now.weekday - 1],
       approximate: false,
     );
   }
 
-  /// اسم اليوم بالعربي من DateTime
-  static String weekdayArOf(DateTime date) => _weekdaysAr[date.weekday - 1];
-
-  /// اسم اليوم بالإنجليزي من DateTime
-  static String weekdayEnOf(DateTime date) => _weekdaysEn[date.weekday - 1];
-
   /// اسم اليوم بالعربي من رقم weekday (1=Mon .. 7=Sun)
   static String weekdayNameAr(int weekday) {
-    switch (weekday) {
-      case DateTime.monday:
-        return 'الاثنين';
-      case DateTime.tuesday:
-        return 'الثلاثاء';
-      case DateTime.wednesday:
-        return 'الأربعاء';
-      case DateTime.thursday:
-        return 'الخميس';
-      case DateTime.friday:
-        return 'الجمعة';
-      case DateTime.saturday:
-        return 'السبت';
-      case DateTime.sunday:
-      default:
-        return 'الأحد';
-    }
+    return weekdaysAr[weekday - 1];
   }
 
-  /// تنسيق ميلادي: 2025 (سبتمبر 1)
+  /// اسم اليوم بالإنكليزي من رقم weekday (1=Mon .. 7=Sun)
+  static String weekdayNameEn(int weekday) {
+    return weekdaysEn[weekday - 1];
+  }
+
+  /// تنسيق ميلادي: 2025 (سبتمبر 1) أو 2025 (September 1)
   static String formatGregorianYMD(DateTime date) {
     final locale = Intl.getCurrentLocale();
     final isAr = locale.toLowerCase().startsWith('ar');
     final mName = isAr
         ? gregorianMonthsAr[date.month - 1]
-        : DateFormat.MMMM(locale).format(date);
+        : gregorianMonthsEn[date.month - 1];
     return '${date.year} ($mName ${date.day})';
   }
 
@@ -163,13 +164,13 @@ class DateUtilsX {
 class DateUtilsHelper {
   DateUtilsHelper._();
 
-  /// ميلادي: 2025 (سبتمبر 1)
+  /// ميلادي: 2025 (سبتمبر 1) أو 2025 (September 1)
   static String formatGregorian(DateTime date) {
     final locale = Intl.getCurrentLocale();
     final isAr = locale.toLowerCase().startsWith('ar');
     final mName = isAr
         ? DateUtilsX.gregorianMonthsAr[date.month - 1]
-        : DateFormat.MMMM(locale).format(date);
+        : DateUtilsX.gregorianMonthsEn[date.month - 1];
     return '${date.year} ($mName ${date.day})';
   }
 
@@ -185,10 +186,12 @@ class DateUtilsHelper {
   }
 
   /// (اختياري) اسم شهر عام (هجري/ميلادي)
-  static String getMonthName(int month, {bool hijri = false}) {
+  static String getMonthName(int month,
+      {bool hijri = false, bool isAr = true}) {
     final idx = (month - 1).clamp(0, 11);
-    return hijri
-        ? DateUtilsX.hijriMonthsAr[idx]
-        : DateUtilsX.gregorianMonthsAr[idx];
+    if (hijri) return DateUtilsX.hijriMonthsAr[idx];
+    return isAr
+        ? DateUtilsX.gregorianMonthsAr[idx]
+        : DateUtilsX.gregorianMonthsEn[idx];
   }
 }

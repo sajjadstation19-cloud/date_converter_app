@@ -57,7 +57,7 @@ class _DateResultCardState extends State<DateResultCard>
 
     final shareText = ExportHelper.buildText(
       result: widget.result,
-      occasion: null, // 🚫 لا مناسبات
+      occasion: null,
       weekdayLabel: t.resultWeekday,
       hijriLabel: t.resultHijri,
       gregorianLabel: t.resultGregorian,
@@ -71,9 +71,9 @@ class _DateResultCardState extends State<DateResultCard>
         child: ScaleTransition(
           scale: _scaleIn,
           child: Card(
-            elevation: 3,
+            elevation: 4,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(16),
             ),
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
@@ -82,7 +82,7 @@ class _DateResultCardState extends State<DateResultCard>
                 children: [
                   // 📌 العنوان
                   Text(
-                    "📌 ${t.resultTitle}", // أضف "resultTitle": "نتيجة التحويل" في ملفات arb
+                    "📌 ${t.resultTitle}",
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: Theme.of(context).colorScheme.primary,
@@ -176,13 +176,42 @@ class _DateResultCardState extends State<DateResultCard>
     required String label,
     VoidCallback? onTap,
   }) {
-    return ElevatedButton.icon(
-      onPressed: onTap,
-      icon: Icon(icon),
-      label: Text(label),
-      style: ElevatedButton.styleFrom(
+    return GestureDetector(
+      onTapDown: (_) => HapticFeedback.lightImpact(),
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF5D8A6A), Color(0xFF4E7D5B)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 3,
+              offset: const Offset(1, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: Colors.white, size: 18),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

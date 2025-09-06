@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-/// A customizable gradient button with press animations.
+/// زر بتدرج لوني + أنيميشن ضغط + هتزاز تفاعلي
 class GradientButton extends StatefulWidget {
   final String label;
   final IconData? icon;
@@ -15,9 +15,9 @@ class GradientButton extends StatefulWidget {
     required this.label,
     this.icon,
     required this.onPressed,
-    this.padding = const EdgeInsets.symmetric(vertical: 16),
-    this.borderRadius = 12,
-    this.elevation = 3,
+    this.padding = const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+    this.borderRadius = 16,
+    this.elevation = 4,
   });
 
   @override
@@ -35,10 +35,10 @@ class _GradientButtonState extends State<GradientButton>
     _controller = AnimationController(
       vsync: this,
       lowerBound: 0.0,
-      upperBound: 0.05,
+      upperBound: 0.06,
       duration: const Duration(milliseconds: 120),
     );
-    _scaleAnim = Tween<double>(begin: 1, end: 0.97).animate(
+    _scaleAnim = Tween<double>(begin: 1, end: 0.96).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeOut),
     );
   }
@@ -49,12 +49,10 @@ class _GradientButtonState extends State<GradientButton>
     super.dispose();
   }
 
-  /// Handle tap down events. Provides an explicit type annotation.
   void _onTapDown(TapDownDetails details) {
     if (widget.onPressed != null) _controller.forward();
   }
 
-  /// Handle tap up events. Provides an explicit type annotation.
   void _onTapUp(TapUpDetails details) {
     if (widget.onPressed != null) _controller.reverse();
   }
@@ -63,25 +61,31 @@ class _GradientButtonState extends State<GradientButton>
   Widget build(BuildContext context) {
     final isDisabled = widget.onPressed == null;
 
+    // 🌿 تدرج لوني ديناميكي أخضر
     const gradient = LinearGradient(
-      colors: [Color(0xFF66BB6A), Color(0xFF4CAF50)], // Light → dark green
+      colors: [Color(0xFF5D8A6A), Color(0xFF4E7D5B)], // فاتح → غامق
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
     );
 
     final child = Row(
       mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
       children: [
         if (widget.icon != null) ...[
           Icon(widget.icon, size: 20, color: Colors.white),
           const SizedBox(width: 8),
         ],
-        Text(
-          widget.label,
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-            fontSize: 16,
+        Flexible(
+          child: Text(
+            widget.label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              letterSpacing: 0.3,
+            ),
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
@@ -102,11 +106,13 @@ class _GradientButtonState extends State<GradientButton>
           ),
           child: InkWell(
             borderRadius: BorderRadius.circular(widget.borderRadius),
+            splashColor: Colors.white.withOpacity(0.15),
+            highlightColor: Colors.transparent,
             onTap: isDisabled
                 ? null
                 : () {
-                    Feedback.forTap(context);
-                    HapticFeedback.lightImpact();
+                    Feedback.forTap(context); // ✅ هتزاز صوتي
+                    HapticFeedback.lightImpact(); // ✅ هتزاز لمسي
                     widget.onPressed?.call();
                   },
             onTapDown: _onTapDown,
