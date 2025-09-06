@@ -10,21 +10,31 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _fadeIn;
+
   @override
   void initState() {
     super.initState();
 
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    )..forward();
+
+    _fadeIn = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
+
     final start = DateTime.now();
     debugPrint(
-        "🚀 [LOG] SplashScreen initState() - ${start.toIso8601String()}"); // 📝 لوج مؤقت للتشخيص
+        "🚀 [LOG] SplashScreen initState() - ${start.toIso8601String()}");
 
-    // ✅ الانتقال بعد نصف ثانية (شعور طبيعي بوجود Splash)
-    Future.delayed(const Duration(milliseconds: 500), () {
+    // ✅ الانتقال بعد ثانية واحدة
+    Future.delayed(const Duration(milliseconds: 1000), () {
       if (mounted) {
         final elapsed = DateTime.now().difference(start).inMilliseconds;
-        debugPrint(
-            "✅ [LOG] الانتقال من Splash بعد ${elapsed}ms"); // 📝 لوج مؤقت للتشخيص
+        debugPrint("✅ [LOG] الانتقال من Splash بعد ${elapsed}ms");
 
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const HomeScreen()),
@@ -35,43 +45,64 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("🎨 [LOG] SplashScreen build()"); // 📝 لوج مؤقت للتشخيص
+    debugPrint("🎨 [LOG] SplashScreen build()");
 
-    final theme = Theme.of(context);
     final t = AppLocalizations.of(context);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF4E7D5B),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // ✅ شعار التطبيق من assets بدل الأيقونة الافتراضية
-            Hero(
-              tag: "app_logo",
-              child: Image.asset(
-                "assets/icon.png",
-                width: 120,
-                height: 120,
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // ✅ عنوان التطبيق مع Hero + ترجمة
-            Hero(
-              tag: "app_title",
-              child: Material(
-                color: Colors.transparent,
-                child: Text(
-                  t.appTitle,
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFF4E7D5B), Color(0xFFE9F3EB)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: FadeTransition(
+          opacity: _fadeIn,
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // ✅ شعار التطبيق
+                Hero(
+                  tag: "app_logo",
+                  child: Image.asset(
+                    "assets/icon.png",
+                    width: 160,
+                    height: 160,
                   ),
                 ),
-              ),
+                const SizedBox(height: 24),
+
+                // ✅ عنوان التطبيق
+                Hero(
+                  tag: "app_title",
+                  child: Material(
+                    color: Colors.transparent,
+                    child: Text(
+                      t.appTitle,
+                      style: const TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // ✅ سطر فرعي ديناميكي حسب اللغة
+                Text(
+                  t.appSubtitle, // ← يجيب من الترجمة
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: Colors.white70,
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

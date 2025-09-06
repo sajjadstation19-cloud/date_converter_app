@@ -18,18 +18,9 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 Future<void> main() async {
   final startTime = DateTime.now();
-  debugPrint("⏱️ [LOG] main() بدأ: $startTime"); // 📝 لوج مؤقت للتشخيص
+  debugPrint("⏱️ [LOG] main() بدأ: $startTime");
 
   WidgetsFlutterBinding.ensureInitialized();
-
-  // 🔹 AdMob
-  await MobileAds.instance.initialize();
-  debugPrint(
-      "✅ [LOG] MobileAds تهيأت بعد: ${DateTime.now().difference(startTime).inMilliseconds}ms");
-
-  // ✅ تحميل إعلان App Open
-  AdHelper.loadAppOpenAd();
-  debugPrint("✅ [LOG] AppOpenAd انطلب تحميله");
 
   // تحميل إعدادات الثيم واللغة
   final themeProvider = ThemeProvider();
@@ -51,6 +42,16 @@ Future<void> main() async {
 
   debugPrint(
       "🎯 [LOG] runApp() استدعيت بعد: ${DateTime.now().difference(startTime).inMilliseconds}ms");
+
+  // ✅ هيئ AdMob بعد تشغيل الواجهة
+  WidgetsBinding.instance.addPostFrameCallback((_) async {
+    await MobileAds.instance.initialize();
+    debugPrint(
+        "✅ [LOG] MobileAds تهيأت بعد: ${DateTime.now().difference(startTime).inMilliseconds}ms");
+
+    AdHelper.loadAppOpenAd();
+    debugPrint("✅ [LOG] AppOpenAd انطلب تحميله");
+  });
 }
 
 class MyApp extends StatelessWidget {
@@ -68,7 +69,7 @@ class MyApp extends StatelessWidget {
     });
 
     return MaterialApp(
-      // 🔹 عنوان افتراضي (لا نستعمل AppLocalizations هنا حتى ما ينهار)
+      // 🔹 عنوان افتراضي
       title: 'Date Converter',
       debugShowCheckedModeBanner: false,
 
@@ -93,7 +94,7 @@ class MyApp extends StatelessWidget {
         fontFamily: 'Tajawal',
         scaffoldBackgroundColor: const Color(0xFFF8F8F5),
         appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF4E7D5B), // ✅ لون أخضر ثابت
+          backgroundColor: Color(0xFF4E7D5B),
           foregroundColor: Colors.white,
           elevation: 0,
           centerTitle: true,
@@ -113,7 +114,7 @@ class MyApp extends StatelessWidget {
         ),
         fontFamily: 'Tajawal',
         appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF4E7D5B), // ✅ نفس اللون بالـ Dark
+          backgroundColor: Color(0xFF4E7D5B),
           foregroundColor: Colors.white,
           elevation: 0,
           centerTitle: true,

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart'; // ✅ Ads
 import 'package:date_converter_app/l10n/app_localizations.dart';
 
 import '../widgets/conversion_bottom_sheet.dart';
 import '../widgets/date_result_card.dart';
-import '../widgets/gradient_button.dart';
 import '../widgets/settings_bottom_sheet.dart';
 import '../models/conversion_output.dart';
 
@@ -79,10 +79,12 @@ class _HomeScreenState extends State<HomeScreen>
 
   /// إعلان مكافأة (إجباري عند الضغط على زر المزيد)
   void _showRewardedAd() {
-    Feedback.forTap(context);
+    HapticFeedback.lightImpact();
     setState(() => _isLoadingAd = true);
 
     AdHelper.showRewardedInterstitialAd(() {
+      // ✅ المستخدم أخذ المكافأة
+      if (!mounted) return;
       setState(() => _isLoadingAd = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -90,13 +92,17 @@ class _HomeScreenState extends State<HomeScreen>
           behavior: SnackBarBehavior.floating,
         ),
       );
+      AdHelper.loadRewardedInterstitialAd(); // إعادة التحميل بعد العرض
     }, onFail: () {
+      // ✅ فشل التحميل → نوقف اللودر أيضًا
+      if (!mounted) return;
       setState(() => _isLoadingAd = false);
+      AdHelper.loadRewardedInterstitialAd();
     });
   }
 
   Future<void> _openConversion({required bool fromGregorian}) async {
-    Feedback.forTap(context);
+    HapticFeedback.lightImpact();
     final result = await showModalBottomSheet<ConversionOutput>(
       context: context,
       useSafeArea: true,
@@ -161,16 +167,23 @@ class _HomeScreenState extends State<HomeScreen>
 
     return Scaffold(
       appBar: AppBar(
-        leading: InkWell(
-          onTap: () => Feedback.forTap(context),
-          child: const Hero(
-            tag: "app_logo",
-            child: Icon(
-              Icons.calendar_month,
-              color: Colors.white,
-              size: 28,
-            ),
-          ),
+        backgroundColor: const Color(0xFF4E7D5B),
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.settings, color: Colors.white),
+          tooltip: t.settings,
+          onPressed: () {
+            HapticFeedback.lightImpact();
+            showModalBottomSheet(
+              context: context,
+              useSafeArea: true,
+              isScrollControlled: true,
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              builder: (ctx) => const SettingsBottomSheet(),
+            );
+          },
         ),
         title: Hero(
           tag: "app_title",
@@ -185,35 +198,17 @@ class _HomeScreenState extends State<HomeScreen>
             ),
           ),
         ),
-        backgroundColor: const Color(0xFF4E7D5B),
-        centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings, color: Colors.white),
-            tooltip: t.settings,
-            onPressed: () {
-              Feedback.forTap(context);
-              showModalBottomSheet(
-                context: context,
-                useSafeArea: true,
-                isScrollControlled: true,
-                shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-                ),
-                builder: (ctx) => const SettingsBottomSheet(),
-              );
-            },
+            icon: const Icon(Icons.calendar_month, color: Colors.white),
+            onPressed: () => HapticFeedback.lightImpact(),
           ),
         ],
       ),
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFFF8F8F5), Color(0xFFE9F3EB)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
+        color: theme.brightness == Brightness.dark
+            ? const Color(0xFF121212) // ✅ خلفية داكنة
+            : const Color(0xFFE9F3EB), // ✅ خلفية فاتحة
         child: SafeArea(
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
@@ -250,19 +245,25 @@ class _HomeScreenState extends State<HomeScreen>
 
                     const SizedBox(height: 24),
 
-                    // أزرار التحويل
-                    _animatedButton(
-                      context: context,
-                      icon: Icons.calendar_today,
-                      label: t.convertFromGregorian,
+                    // أزرار التحويل (Material 3)
+                    FilledButton.icon(
                       onPressed: () => _openConversion(fromGregorian: true),
+                      icon: const Icon(Icons.calendar_today),
+                      label: Text(t.convertFromGregorian),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: const Color(0xFF4E7D5B),
+                        foregroundColor: Colors.white,
+                      ),
                     ),
                     const SizedBox(height: 12),
-                    _animatedButton(
-                      context: context,
-                      icon: Icons.nightlight_round,
-                      label: t.convertFromHijri,
+                    FilledButton.icon(
                       onPressed: () => _openConversion(fromGregorian: false),
+                      icon: const Icon(Icons.nightlight_round),
+                      label: Text(t.convertFromHijri),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: const Color(0xFF4E7D5B),
+                        foregroundColor: Colors.white,
+                      ),
                     ),
 
                     const SizedBox(height: 20),
@@ -298,23 +299,31 @@ class _HomeScreenState extends State<HomeScreen>
       ),
       bottomNavigationBar: BottomAppBar(
         color: const Color(0xFF4E7D5B),
-        shape: const CircularNotchedRectangle(),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _bottomNavItem(
-              icon: Icons.home,
-              label: t.home,
-              onTap: () {
-                Feedback.forTap(context);
+            TextButton.icon(
+              onPressed: () {
+                HapticFeedback.lightImpact();
                 setState(() {});
               },
+              icon: const Icon(Icons.home, color: Colors.white),
+              label: Text(t.home, style: const TextStyle(color: Colors.white)),
             ),
-            _bottomNavItem(
-              icon: Icons.card_giftcard,
-              label: t.moreButton,
-              onTap: _showRewardedAd,
-              showLoader: _isLoadingAd,
+            TextButton.icon(
+              onPressed: _isLoadingAd ? null : _showRewardedAd,
+              icon: _isLoadingAd
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : const Icon(Icons.card_giftcard, color: Colors.white),
+              label: Text(t.moreButton,
+                  style: const TextStyle(color: Colors.white)),
             ),
           ],
         ),
@@ -330,75 +339,6 @@ class _HomeScreenState extends State<HomeScreen>
       // ... باقي المناسبات
     }
     return key;
-  }
-
-  /// زر أنيميشن + هتزاز
-  Widget _animatedButton({
-    required BuildContext context,
-    required IconData icon,
-    required String label,
-    required VoidCallback onPressed,
-  }) {
-    return SlideTransition(
-      position: _slideUp,
-      child: FadeTransition(
-        opacity: _fadeIn,
-        child: ScaleTransition(
-          scale: _scaleIn,
-          child: GestureDetector(
-            onTap: () {
-              Feedback.forTap(context);
-              onPressed();
-            },
-            child: GradientButton(
-              icon: icon,
-              label: label,
-              onPressed: onPressed,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// عنصر Bottom Navigation
-  Widget _bottomNavItem({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-    bool showLoader = false,
-  }) {
-    return InkWell(
-      onTap: () {
-        Feedback.forTap(context);
-        onTap();
-      },
-      borderRadius: BorderRadius.circular(12),
-      splashColor: Colors.white24,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            showLoader
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
-                : Icon(icon, color: Colors.white, size: 26),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: const TextStyle(color: Colors.white, fontSize: 13),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }
 

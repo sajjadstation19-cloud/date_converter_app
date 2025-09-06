@@ -51,6 +51,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get close => 'إغلاق';
 
   @override
+  String get appSubtitle => 'التحويل بين الهجري والميلادي';
+
+  @override
   String get system => 'افتراضي النظام';
 
   @override

@@ -182,6 +182,12 @@ abstract class AppLocalizations {
   /// **'Close'**
   String get close;
 
+  /// No description provided for @appSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'التحويل بين الهجري والميلادي'**
+  String get appSubtitle;
+
   /// No description provided for @system.
   ///
   /// In en, this message translates to:

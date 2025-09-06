@@ -51,6 +51,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get close => 'Close';
 
   @override
+  String get appSubtitle => 'التحويل بين الهجري والميلادي';
+
+  @override
   String get system => 'System Default';
 
   @override
