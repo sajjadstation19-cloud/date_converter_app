@@ -106,7 +106,7 @@ class _GradientButtonState extends State<GradientButton>
           ),
           child: InkWell(
             borderRadius: BorderRadius.circular(widget.borderRadius),
-            splashColor: Colors.white.withOpacity(0.15),
+            splashColor: Colors.white.withValues(alpha: 0.15),
             highlightColor: Colors.transparent,
             onTap: isDisabled
                 ? null

@@ -100,7 +100,11 @@ class AdHelper {
     );
   }
 
-  static void showRewardedInterstitialAd(VoidCallback onRewardEarned) {
+  /// ✅ يدعم onFail إذا الإعلان مو جاهز
+  static void showRewardedInterstitialAd(
+    VoidCallback onRewardEarned, {
+    VoidCallback? onFail,
+  }) {
     if (_rewardedInterstitialAd != null) {
       _rewardedInterstitialAd!.show(
         onUserEarnedReward: (ad, reward) {
@@ -112,6 +116,7 @@ class AdHelper {
       loadRewardedInterstitialAd();
     } else {
       debugPrint("⚠️ Rewarded Interstitial Ad غير جاهز بعد");
+      if (onFail != null) onFail();
     }
   }
 

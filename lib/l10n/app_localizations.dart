@@ -302,6 +302,12 @@ abstract class AppLocalizations {
   /// **'Conversion Result'**
   String get resultTitle;
 
+  /// No description provided for @todayWord.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get todayWord;
+
   /// No description provided for @hijriNewYear.
   ///
   /// In en, this message translates to:

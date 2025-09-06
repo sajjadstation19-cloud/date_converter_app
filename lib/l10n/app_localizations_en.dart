@@ -111,6 +111,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get resultTitle => 'Conversion Result';
 
   @override
+  String get todayWord => 'Today';
+
+  @override
   String get hijriNewYear => 'Hijri New Year';
 
   @override

@@ -44,6 +44,12 @@ class DateUtilsX {
     'Sunday',
   ];
 
+  /// اسم اليوم بالعربي من DateTime
+  static String weekdayArOf(DateTime date) => weekdaysAr[date.weekday - 1];
+
+  /// اسم اليوم بالإنجليزي من DateTime
+  static String weekdayEnOf(DateTime date) => weekdaysEn[date.weekday - 1];
+
   /// أشهر ميلادية بالعربي
   static const List<String> gregorianMonthsAr = [
     'يناير',
@@ -106,14 +112,10 @@ class DateUtilsX {
   }
 
   /// اسم اليوم بالعربي من رقم weekday (1=Mon .. 7=Sun)
-  static String weekdayNameAr(int weekday) {
-    return weekdaysAr[weekday - 1];
-  }
+  static String weekdayNameAr(int weekday) => weekdaysAr[weekday - 1];
 
   /// اسم اليوم بالإنكليزي من رقم weekday (1=Mon .. 7=Sun)
-  static String weekdayNameEn(int weekday) {
-    return weekdaysEn[weekday - 1];
-  }
+  static String weekdayNameEn(int weekday) => weekdaysEn[weekday - 1];
 
   /// تنسيق ميلادي: 2025 (سبتمبر 1) أو 2025 (September 1)
   static String formatGregorianYMD(DateTime date) {
