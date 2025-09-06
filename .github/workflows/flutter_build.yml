@@ -2,7 +2,17 @@ name: Flutter CI
 
 on:
   push:
-    branches: [ main ]   # يشتغل كلما تسوي push على main
+    branches: [ main ]
+  workflow_dispatch:        # 🔹 يضيف زر Run workflow
+    inputs:
+      build-type:
+        description: "اختر نوع البناء"
+        required: true
+        default: "debug"
+        type: choice
+        options:
+          - debug
+          - release
 
 jobs:
   build:
@@ -20,22 +30,17 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      # ✅ بناء نسخة Debug (أسهل بالبداية)
-      - name: Build Debug APK
-        run: flutter build apk --debug
+      - name: Build APK
+        run: |
+          if [ "${{ github.event.inputs.build-type }}" = "release" ]; then
+            flutter build apk --release
+          else
+            flutter build apk --debug
+          fi
 
-      - name: Upload Debug APK
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: debug-apk
-          path: build/app/outputs/flutter-apk/app-debug.apk
-
-      # ✅ إذا أردت Release بعدين (لازم keystore)
-      # - name: Build Release APK
-      #   run: flutter build apk --release
-
-      # - name: Upload Release APK
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: release-apk
-      #     path: build/app/outputs/flutter-apk/app-release.apk
+          name: ${{ github.event.inputs.build-type }}-apk
+          path: |
+            build/app/outputs/flutter-apk/app-${{ github.event.inputs.build-type }}.apk
