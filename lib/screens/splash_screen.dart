@@ -15,9 +15,17 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
 
+    final start = DateTime.now();
+    debugPrint(
+        "🚀 [LOG] SplashScreen initState() - ${start.toIso8601String()}"); // 📝 لوج مؤقت للتشخيص
+
     // ✅ الانتقال بعد نصف ثانية (شعور طبيعي بوجود Splash)
     Future.delayed(const Duration(milliseconds: 500), () {
       if (mounted) {
+        final elapsed = DateTime.now().difference(start).inMilliseconds;
+        debugPrint(
+            "✅ [LOG] الانتقال من Splash بعد ${elapsed}ms"); // 📝 لوج مؤقت للتشخيص
+
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const HomeScreen()),
         );
@@ -27,6 +35,8 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint("🎨 [LOG] SplashScreen build()"); // 📝 لوج مؤقت للتشخيص
+
     final theme = Theme.of(context);
     final t = AppLocalizations.of(context);
 

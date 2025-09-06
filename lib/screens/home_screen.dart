@@ -136,9 +136,7 @@ class _HomeScreenState extends State<HomeScreen>
 
     // ميلادي
     final g = today.gregorian;
-    final gMonthName = isAr
-        ? DateUtilsX.gregorianMonthsAr[g.month - 1]
-        : DateUtilsHelper.getMonthName(g.month);
+    final gMonthName = DateUtilsHelper.getMonthName(g.month, isAr: isAr);
     final gregText = '${g.year} ($gMonthName ${g.day})';
 
     // هجري
@@ -157,7 +155,9 @@ class _HomeScreenState extends State<HomeScreen>
         gregKeys.map((k) => _translateOccasion(k, t)).toList();
 
     // ✅ اختيار اليوم حسب اللغة
-    final weekday = isAr ? today.weekdayAr : today.weekdayEn;
+    final weekday = isAr
+        ? DateUtilsX.weekdayArOf(today.gregorian)
+        : DateUtilsX.weekdayEnOf(today.gregorian);
 
     return Scaffold(
       appBar: AppBar(
@@ -234,11 +234,10 @@ class _HomeScreenState extends State<HomeScreen>
                           child: _TodayCard(
                             weekday: weekday,
                             gregTitle:
-                                "${t.todayGregorianTitle} ${t.todayWord}", // ✅ إضافة كلمة اليوم
+                                "${t.todayGregorianTitle} ${t.todayWord}",
                             gregText: gregText,
                             gregOccasions: gregorianOccasions,
-                            hijriTitle:
-                                "${t.todayHijriTitle} ${t.todayWord}", // ✅ إضافة كلمة اليوم
+                            hijriTitle: "${t.todayHijriTitle} ${t.todayWord}",
                             hijriText: hijriText,
                             hijriOccasions: hijriOccasions,
                             showApproxNote:
@@ -307,7 +306,7 @@ class _HomeScreenState extends State<HomeScreen>
               icon: Icons.home,
               label: t.home,
               onTap: () {
-                Feedback.forTap(context); // ✅ هتزاز
+                Feedback.forTap(context);
                 setState(() {});
               },
             ),
@@ -315,7 +314,7 @@ class _HomeScreenState extends State<HomeScreen>
               icon: Icons.card_giftcard,
               label: t.moreButton,
               onTap: _showRewardedAd,
-              showLoader: _isLoadingAd, // ✅ تحميل أثناء الإعلان
+              showLoader: _isLoadingAd,
             ),
           ],
         ),
@@ -323,17 +322,17 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  /// ترجمة المناسبات (كاملة)
+  /// ترجمة المناسبات (مقتطف)
   String _translateOccasion(String key, AppLocalizations t) {
     switch (key) {
       case "hijriNewYear":
         return t.hijriNewYear;
-      // ... باقي الحالات مثل نسختك
+      // ... باقي المناسبات
     }
     return key;
   }
 
-  /// زر مع أنيميشن Slide + Fade + Scale
+  /// زر أنيميشن + هتزاز
   Widget _animatedButton({
     required BuildContext context,
     required IconData icon,
@@ -348,7 +347,7 @@ class _HomeScreenState extends State<HomeScreen>
           scale: _scaleIn,
           child: GestureDetector(
             onTap: () {
-              Feedback.forTap(context); // ✅ هتزاز
+              Feedback.forTap(context);
               onPressed();
             },
             child: GradientButton(
@@ -362,7 +361,7 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  /// عنصر Bottom Navigation مخصص
+  /// عنصر Bottom Navigation
   Widget _bottomNavItem({
     required IconData icon,
     required String label,
@@ -371,7 +370,7 @@ class _HomeScreenState extends State<HomeScreen>
   }) {
     return InkWell(
       onTap: () {
-        Feedback.forTap(context); // ✅ هتزاز
+        Feedback.forTap(context);
         onTap();
       },
       borderRadius: BorderRadius.circular(12),

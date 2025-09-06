@@ -17,19 +17,27 @@ import 'providers/locale_provider.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 Future<void> main() async {
+  final startTime = DateTime.now();
+  debugPrint("⏱️ [LOG] main() بدأ: $startTime"); // 📝 لوج مؤقت للتشخيص
+
   WidgetsFlutterBinding.ensureInitialized();
 
   // 🔹 AdMob
   await MobileAds.instance.initialize();
+  debugPrint(
+      "✅ [LOG] MobileAds تهيأت بعد: ${DateTime.now().difference(startTime).inMilliseconds}ms");
 
   // ✅ تحميل إعلان App Open
   AdHelper.loadAppOpenAd();
+  debugPrint("✅ [LOG] AppOpenAd انطلب تحميله");
 
   // تحميل إعدادات الثيم واللغة
   final themeProvider = ThemeProvider();
   final localeProvider = LocaleProvider();
 
   await Future.wait([themeProvider.load(), localeProvider.load()]);
+  debugPrint(
+      "✅ [LOG] Providers تهيأت بعد: ${DateTime.now().difference(startTime).inMilliseconds}ms");
 
   runApp(
     MultiProvider(
@@ -40,6 +48,9 @@ Future<void> main() async {
       child: const MyApp(),
     ),
   );
+
+  debugPrint(
+      "🎯 [LOG] runApp() استدعيت بعد: ${DateTime.now().difference(startTime).inMilliseconds}ms");
 }
 
 class MyApp extends StatelessWidget {
@@ -52,6 +63,7 @@ class MyApp extends StatelessWidget {
 
     // ✅ استعرض إعلان الفتح بعد أول إطار
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      debugPrint("👋 [LOG] أول إطار انبنى (build MyApp)");
       AdHelper.showAppOpenAd();
     });
 
@@ -86,7 +98,7 @@ class MyApp extends StatelessWidget {
           elevation: 0,
           centerTitle: true,
         ),
-        cardTheme: CardThemeData(
+        cardTheme: const CardThemeData(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.all(Radius.circular(16)),
           ),
@@ -106,7 +118,7 @@ class MyApp extends StatelessWidget {
           elevation: 0,
           centerTitle: true,
         ),
-        cardTheme: CardThemeData(
+        cardTheme: const CardThemeData(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.all(Radius.circular(16)),
           ),
