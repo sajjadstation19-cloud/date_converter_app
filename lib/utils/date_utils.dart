@@ -98,6 +98,22 @@ class DateUtilsX {
     'ذو الحجة',
   ];
 
+  /// أشهر هجرية بالإنكليزي
+  static const List<String> hijriMonthsEn = [
+    'Muharram',
+    'Safar',
+    'Rabiʽ al-awwal',
+    'Rabiʽ al-thani',
+    'Jumada al-awwal',
+    'Jumada al-thani',
+    'Rajab',
+    'Shaʽban',
+    'Ramadan',
+    'Shawwal',
+    'Dhu al-Qiʽdah',
+    'Dhu al-Hijjah',
+  ];
+
   /// تاريخ اليوم جاهز
   static TodayDates getToday() {
     final now = DateTime.now();
@@ -127,9 +143,12 @@ class DateUtilsX {
     return '${date.year} ($mName ${date.day})';
   }
 
-  /// تنسيق هجري: 1447 هـ (ربيع الأول 9)
+  /// تنسيق هجري: 1447 هـ (ربيع الأول 9) أو (Rabiʽ al-awwal 9)
   static String formatHijriYMD(HijriCalendar h) {
-    final mName = hijriMonthsAr[h.hMonth - 1];
+    final locale = Intl.getCurrentLocale();
+    final isAr = locale.toLowerCase().startsWith('ar');
+    final mName =
+        isAr ? hijriMonthsAr[h.hMonth - 1] : hijriMonthsEn[h.hMonth - 1];
     return '${h.hYear} هـ ($mName ${h.hDay})';
   }
 
@@ -181,9 +200,13 @@ class DateUtilsHelper {
     return HijriCalendar.fromDate(gregorian);
   }
 
-  /// هجري: 1447 هـ (ربيع الأول 9)
+  /// هجري: 1447 هـ (ربيع الأول 9) أو (Rabiʽ al-awwal 9)
   static String formatHijri(HijriCalendar h) {
-    final name = DateUtilsX.hijriMonthsAr[h.hMonth - 1];
+    final locale = Intl.getCurrentLocale();
+    final isAr = locale.toLowerCase().startsWith('ar');
+    final name = isAr
+        ? DateUtilsX.hijriMonthsAr[h.hMonth - 1]
+        : DateUtilsX.hijriMonthsEn[h.hMonth - 1];
     return '${h.hYear} هـ ($name ${h.hDay})';
   }
 
@@ -191,7 +214,11 @@ class DateUtilsHelper {
   static String getMonthName(int month,
       {bool hijri = false, bool isAr = true}) {
     final idx = (month - 1).clamp(0, 11);
-    if (hijri) return DateUtilsX.hijriMonthsAr[idx];
+    if (hijri) {
+      return isAr
+          ? DateUtilsX.hijriMonthsAr[idx]
+          : DateUtilsX.hijriMonthsEn[idx];
+    }
     return isAr
         ? DateUtilsX.gregorianMonthsAr[idx]
         : DateUtilsX.gregorianMonthsEn[idx];

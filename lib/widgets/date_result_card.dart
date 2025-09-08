@@ -52,8 +52,17 @@ class _DateResultCardState extends State<DateResultCard>
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
 
+    // ✅ تحديد اللغة
+    final isAr = Localizations.localeOf(context).languageCode == "ar";
+
+    // ✅ صياغة التاريخ
     final hijriStr = DateUtilsHelper.formatHijri(widget.result.hijri);
     final gregStr = DateUtilsHelper.formatGregorian(widget.result.gregorian);
+
+    // ✅ اختيار اليوم حسب اللغة
+    final weekdayStr = isAr
+        ? widget.result.weekdayAr
+        : DateUtilsX.weekdayEnOf(widget.result.gregorian);
 
     final shareText = ExportHelper.buildText(
       result: widget.result,
@@ -90,10 +99,13 @@ class _DateResultCardState extends State<DateResultCard>
                   ),
                   const SizedBox(height: 10),
 
-                  _rowItem(context, t.resultWeekday, widget.result.weekdayAr),
+                  // ✅ اليوم
+                  _rowItem(context, t.resultWeekday, weekdayStr),
                   const SizedBox(height: 6),
+
                   _rowItem(context, t.resultHijri, hijriStr),
                   const SizedBox(height: 6),
+
                   _rowItem(context, t.resultGregorian, gregStr),
 
                   if (widget.result.approximate) ...[

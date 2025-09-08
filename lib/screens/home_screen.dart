@@ -147,7 +147,9 @@ class _HomeScreenState extends State<HomeScreen>
 
     // هجري
     final h = today.hijri;
-    final hMonthName = DateUtilsX.hijriMonthsAr[h.hMonth - 1];
+    final hMonthName = isAr
+        ? DateUtilsX.hijriMonthsAr[h.hMonth - 1]
+        : DateUtilsX.hijriMonthsEn[h.hMonth - 1];
     final hijriText = '${h.hYear} هـ ($hMonthName ${h.hDay})';
 
     // المناسبات
@@ -242,9 +244,7 @@ class _HomeScreenState extends State<HomeScreen>
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 24),
-
                     // أزرار التحويل (Material 3)
                     FilledButton.icon(
                       onPressed: () => _openConversion(fromGregorian: true),
@@ -265,9 +265,7 @@ class _HomeScreenState extends State<HomeScreen>
                         foregroundColor: Colors.white,
                       ),
                     ),
-
                     const SizedBox(height: 20),
-
                     // بطاقة النتيجة
                     AnimatedSwitcher(
                       duration: const Duration(milliseconds: 300),
@@ -280,9 +278,7 @@ class _HomeScreenState extends State<HomeScreen>
                               result: _lastResult!,
                             ),
                     ),
-
                     const SizedBox(height: 24),
-
                     // ✅ Banner Ad
                     if (_isBannerReady && _bannerAd != null)
                       SizedBox(
@@ -311,17 +307,23 @@ class _HomeScreenState extends State<HomeScreen>
               label: Text(t.home, style: const TextStyle(color: Colors.white)),
             ),
             TextButton.icon(
-              onPressed: _isLoadingAd ? null : _showRewardedAd,
-              icon: _isLoadingAd
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    )
-                  : const Icon(Icons.card_giftcard, color: Colors.white),
+              onPressed: _isLoadingAd ? () {} : _showRewardedAd,
+              icon: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                child: _isLoadingAd
+                    ? const SizedBox(
+                        key: ValueKey("loader"),
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                    : const Icon(Icons.card_giftcard,
+                        key: ValueKey("icon"), color: Colors.white),
+              ),
               label: Text(t.moreButton,
                   style: const TextStyle(color: Colors.white)),
             ),
@@ -389,7 +391,6 @@ class _TodayCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 14),
-
               // Gregorian
               _LineTitle(
                 icon: Icons.calendar_today_outlined,
@@ -408,11 +409,9 @@ class _TodayCard extends StatelessWidget {
                 const SizedBox(height: 8),
                 _OccasionList(items: gregOccasions, textTheme: textTheme),
               ],
-
               const SizedBox(height: 16),
               Divider(color: theme.dividerColor.withValues(alpha: .25)),
               const SizedBox(height: 12),
-
               // Hijri
               _LineTitle(
                 icon: Icons.nightlight_round,
@@ -431,7 +430,6 @@ class _TodayCard extends StatelessWidget {
                 const SizedBox(height: 8),
                 _OccasionList(items: hijriOccasions, textTheme: textTheme),
               ],
-
               if (showApproxNote != null) ...[
                 const SizedBox(height: 12),
                 Text(
