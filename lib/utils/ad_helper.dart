@@ -41,7 +41,6 @@ class AdHelper {
         },
       ),
     );
-
     ad.load();
     return ad;
   }
@@ -83,7 +82,10 @@ class AdHelper {
   // ------------------------------
   static RewardedInterstitialAd? _rewardedInterstitialAd;
 
-  static void loadRewardedInterstitialAd() {
+  /// 🔹 Getter حتى نعرف إذا الإعلان جاهز
+  static bool get hasRewardedAd => _rewardedInterstitialAd != null;
+
+  static void loadRewardedInterstitialAd({VoidCallback? onLoaded}) {
     RewardedInterstitialAd.load(
       adUnitId: rewardedInterstitialAdUnitId,
       request: const AdRequest(),
@@ -91,6 +93,7 @@ class AdHelper {
         onAdLoaded: (ad) {
           _rewardedInterstitialAd = ad;
           debugPrint("✅ Rewarded Interstitial Ad Loaded");
+          onLoaded?.call();
         },
         onAdFailedToLoad: (error) {
           debugPrint("❌ Rewarded Interstitial failed: $error");
@@ -106,14 +109,29 @@ class AdHelper {
     VoidCallback? onFail,
   }) {
     if (_rewardedInterstitialAd != null) {
+      _rewardedInterstitialAd!.fullScreenContentCallback =
+          FullScreenContentCallback(
+        onAdDismissedFullScreenContent: (ad) {
+          ad.dispose();
+          _rewardedInterstitialAd = null;
+          loadRewardedInterstitialAd(); // إعادة التحميل بعد الغلق
+        },
+        onAdFailedToShowFullScreenContent: (ad, error) {
+          ad.dispose();
+          _rewardedInterstitialAd = null;
+          onFail?.call();
+          loadRewardedInterstitialAd();
+        },
+      );
+
       _rewardedInterstitialAd!.show(
         onUserEarnedReward: (ad, reward) {
           debugPrint("🎁 User earned reward: ${reward.amount}");
           onRewardEarned();
         },
       );
+
       _rewardedInterstitialAd = null;
-      loadRewardedInterstitialAd();
     } else {
       debugPrint("⚠️ Rewarded Interstitial Ad غير جاهز بعد");
       if (onFail != null) onFail();

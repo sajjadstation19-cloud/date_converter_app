@@ -1,16 +1,14 @@
 flutter_native_splash:
-  color: "#4E7D5B"   # الخلفية الرئيسية (نفس الأخضر الثابت)
-  color_dark: "#121212"  # بالوضع الداكن
-
-  # الأيقونة الرسمية للتطبيق (PNG)
-  image: assets/icon.png
+  color: "#4E7D5B"   # نفس الأخضر مال التطبيق
+  image: assets/icon.png   # شعار التطبيق
+  color_dark: "#121212"  # للـ dark mode
   image_dark: assets/icon.png
-
-
-  # أبعاد آمنة
-  android_gravity: center
-  ios_content_mode: center
-
-  # مدة الشاشة (default سريع جداً، لكن تقدر تزيد)
   android: true
   ios: true
+  web: false
+
+  android_12:
+    image: assets/icon.png
+    icon_background_color: "#4E7D5B"
+    image_dark: assets/icon.png
+    icon_background_color_dark: "#121212"

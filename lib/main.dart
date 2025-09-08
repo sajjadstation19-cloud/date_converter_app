@@ -8,8 +8,7 @@ import 'utils/ad_helper.dart'; // ✅ إعلان App Open
 // Localization
 import 'package:date_converter_app/l10n/app_localizations.dart';
 
-// Screens & Providers
-import 'screens/splash_screen.dart'; // ✅ شاشة البداية
+import 'screens/home_screen.dart';
 import 'providers/theme_provider.dart';
 import 'providers/locale_provider.dart';
 
@@ -128,7 +127,7 @@ class MyApp extends StatelessWidget {
       ),
 
       // 🏠 شاشة البداية
-      home: const SplashScreen(),
+      home: const HomeScreen(),
     );
   }
 }
