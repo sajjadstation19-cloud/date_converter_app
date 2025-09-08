@@ -8,6 +8,7 @@ import '../widgets/conversion_bottom_sheet.dart';
 import '../widgets/date_result_card.dart';
 import '../widgets/settings_bottom_sheet.dart';
 import '../models/conversion_output.dart';
+
 import '../utils/occasions.dart';
 import '../utils/date_utils.dart';
 import '../utils/ad_helper.dart'; // ✅ استدعاء ملف الإعلانات
@@ -199,8 +200,8 @@ class _HomeScreenState extends State<HomeScreen>
         appBar: AppBar(
           backgroundColor: const Color(0xFF4E7D5B),
           centerTitle: true,
-          leading: IconButton(
-            icon: const Icon(Icons.settings, color: Colors.white),
+          leading: _buildAppBarButton(
+            icon: Icons.settings,
             tooltip: t.settings,
             onPressed: () {
               HapticFeedback.lightImpact();
@@ -229,8 +230,9 @@ class _HomeScreenState extends State<HomeScreen>
             ),
           ),
           actions: [
-            IconButton(
-              icon: const Icon(Icons.calendar_month, color: Colors.white),
+            _buildAppBarButton(
+              icon: Icons.calendar_month,
+              tooltip: t.todayWord,
               onPressed: () => HapticFeedback.lightImpact(),
             ),
           ],
@@ -282,25 +284,17 @@ class _HomeScreenState extends State<HomeScreen>
                           ),
                         ),
                         const SizedBox(height: 24),
-                        FilledButton.icon(
+                        _buildActionButton(
+                          icon: Icons.calendar_today,
+                          label: t.convertFromGregorian,
                           onPressed: () => _openConversion(fromGregorian: true),
-                          icon: const Icon(Icons.calendar_today),
-                          label: Text(t.convertFromGregorian),
-                          style: FilledButton.styleFrom(
-                            backgroundColor: const Color(0xFF4E7D5B),
-                            foregroundColor: Colors.white,
-                          ),
                         ),
                         const SizedBox(height: 12),
-                        FilledButton.icon(
+                        _buildActionButton(
+                          icon: Icons.nightlight_round,
+                          label: t.convertFromHijri,
                           onPressed: () =>
                               _openConversion(fromGregorian: false),
-                          icon: const Icon(Icons.nightlight_round),
-                          label: Text(t.convertFromHijri),
-                          style: FilledButton.styleFrom(
-                            backgroundColor: const Color(0xFF4E7D5B),
-                            foregroundColor: Colors.white,
-                          ),
                         ),
                         const SizedBox(height: 20),
                         AnimatedSwitcher(
@@ -334,39 +328,88 @@ class _HomeScreenState extends State<HomeScreen>
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              TextButton.icon(
+              _buildNavButton(
+                icon: Icons.home,
+                label: t.home,
                 onPressed: () {
                   HapticFeedback.lightImpact();
                   setState(() {});
                 },
-                icon: const Icon(Icons.home, color: Colors.white),
-                label:
-                    Text(t.home, style: const TextStyle(color: Colors.white)),
               ),
-              TextButton.icon(
+              _buildNavButton(
+                icon: Icons.card_giftcard,
+                label: t.moreButton,
                 onPressed: _isLoadingAd ? () {} : _showRewardedAd,
-                icon: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 200),
-                  child: _isLoadingAd
-                      ? const SizedBox(
-                          key: ValueKey("loader"),
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor:
-                                AlwaysStoppedAnimation<Color>(Colors.white),
-                          ),
-                        )
-                      : const Icon(Icons.card_giftcard,
-                          key: ValueKey("icon"), color: Colors.white),
-                ),
-                label: Text(t.moreButton,
-                    style: const TextStyle(color: Colors.white)),
+                isLoading: _isLoadingAd,
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  /// 🔹 زر موحد للـ AppBar
+  Widget _buildAppBarButton(
+      {required IconData icon,
+      required String tooltip,
+      required VoidCallback onPressed}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 6),
+      child: Material(
+        color: Colors.white.withOpacity(0.15),
+        shape: const CircleBorder(),
+        child: IconButton(
+          icon: Icon(icon, color: Colors.white),
+          tooltip: tooltip,
+          onPressed: onPressed,
+        ),
+      ),
+    );
+  }
+
+  /// 🔹 زر موحد لأزرار التحويل
+  Widget _buildActionButton(
+      {required IconData icon,
+      required String label,
+      required VoidCallback onPressed}) {
+    return FilledButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon),
+      label: Text(label),
+      style: FilledButton.styleFrom(
+        backgroundColor: const Color(0xFF4E7D5B),
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+        ),
+        textStyle: const TextStyle(fontSize: 16),
+      ),
+    );
+  }
+
+  /// 🔹 زر موحد للـ BottomAppBar
+  Widget _buildNavButton(
+      {required IconData icon,
+      required String label,
+      required VoidCallback onPressed,
+      bool isLoading = false}) {
+    return TextButton.icon(
+      onPressed: onPressed,
+      icon: isLoading
+          ? const SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              ),
+            )
+          : Icon(icon, color: Colors.white),
+      label: Text(label, style: const TextStyle(color: Colors.white)),
+      style: TextButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       ),
     );
   }

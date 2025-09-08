@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:date_converter_app/l10n/app_localizations.dart';
-
 import 'package:intl/intl.dart';
 import 'package:hijri/hijri_calendar.dart';
 import 'package:flutter/services.dart';
@@ -24,14 +23,12 @@ class _ConversionBottomSheetState extends State<ConversionBottomSheet> {
   int? selectedDay;
   int? selectedMonth;
   int? selectedYear;
-
   List<int> _days = [];
 
   @override
   void initState() {
     super.initState();
     final now = DateTime.now();
-
     if (widget.fromGregorian) {
       selectedDay = now.day;
       selectedMonth = now.month;
@@ -55,7 +52,10 @@ class _ConversionBottomSheetState extends State<ConversionBottomSheet> {
   }
 
   String _hijriMonthLabel(BuildContext context, int m) {
-    return DateUtilsX.hijriMonthsAr[m - 1];
+    final lang = Localizations.localeOf(context).languageCode;
+    return lang == 'ar'
+        ? DateUtilsX.hijriMonthsAr[m - 1]
+        : DateUtilsX.hijriMonthsEn[m - 1];
   }
 
   String _monthLabel(BuildContext context, int m) {
@@ -72,6 +72,7 @@ class _ConversionBottomSheetState extends State<ConversionBottomSheet> {
       setState(() {});
       return;
     }
+
     if (widget.fromGregorian) {
       final len = DateUtilsX.gregorianMonthLength(
         selectedYear!,
@@ -84,13 +85,13 @@ class _ConversionBottomSheetState extends State<ConversionBottomSheet> {
       _days = List.generate(len, (i) => i + 1);
       if (selectedDay != null && selectedDay! > len) selectedDay = len;
     }
+
     setState(() {});
   }
 
   // التحويل
   void _handleConvert() {
     final t = AppLocalizations.of(context);
-
     HapticFeedback.selectionClick();
 
     if (selectedDay == null || selectedMonth == null || selectedYear == null) {
@@ -128,7 +129,6 @@ class _ConversionBottomSheetState extends State<ConversionBottomSheet> {
       final weekdayAr = DateUtilsX.weekdayArOf(greg);
 
       HapticFeedback.lightImpact();
-
       Navigator.of(context).pop(
         ConversionOutput(
           gregorian: greg,
