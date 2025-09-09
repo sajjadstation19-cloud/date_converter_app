@@ -9,7 +9,7 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appTitle => 'Date Converter';
+  String get appTitle => 'Calendar Converter';
 
   @override
   String get settings => 'Settings';
@@ -51,7 +51,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get close => 'Close';
 
   @override
-  String get appSubtitle => 'التحويل بين الهجري والميلادي';
+  String get appSubtitle => 'Hijri & Gregorian date conversion';
 
   @override
   String get system => 'System Default';
@@ -76,6 +76,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get themeSystem => 'System';
+
+  @override
+  String get app_name => 'Date Converter';
 
   @override
   String get noteAccuracy => 'Dates may not be 100% accurate.';

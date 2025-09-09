@@ -1,7 +1,6 @@
 import 'package:date_converter_app/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
 import '../models/conversion_output.dart';
 import '../utils/date_utils.dart';
 import '../utils/export_helper.dart';
@@ -29,13 +28,11 @@ class _DateResultCardState extends State<DateResultCard>
       vsync: this,
       duration: const Duration(milliseconds: 500),
     )..forward();
-
     _fadeIn = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
     _slideUp = Tween<Offset>(
       begin: const Offset(0, .1),
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
-
     _scaleIn = Tween<double>(
       begin: .98,
       end: 1,
@@ -55,15 +52,26 @@ class _DateResultCardState extends State<DateResultCard>
     // ✅ تحديد اللغة
     final isAr = Localizations.localeOf(context).languageCode == "ar";
 
-    // ✅ صياغة التاريخ
-    final hijriStr = DateUtilsHelper.formatHijri(widget.result.hijri);
-    final gregStr = DateUtilsHelper.formatGregorian(widget.result.gregorian);
+    // ✅ صياغة التاريخ الهجري حسب اللغة
+    final hijriMonth = isAr
+        ? DateUtilsX.hijriMonthsAr[widget.result.hijri.hMonth - 1]
+        : DateUtilsX.hijriMonthsEn[widget.result.hijri.hMonth - 1];
+    final hijriStr =
+        "${widget.result.hijri.hYear} هـ ($hijriMonth ${widget.result.hijri.hDay})";
+
+    // ✅ صياغة التاريخ الميلادي حسب اللغة
+    final gregMonth = isAr
+        ? DateUtilsX.gregorianMonthsAr[widget.result.gregorian.month - 1]
+        : DateUtilsX.gregorianMonthsEn[widget.result.gregorian.month - 1];
+    final gregStr =
+        "${widget.result.gregorian.year} ($gregMonth ${widget.result.gregorian.day})";
 
     // ✅ اختيار اليوم حسب اللغة
     final weekdayStr = isAr
         ? widget.result.weekdayAr
         : DateUtilsX.weekdayEnOf(widget.result.gregorian);
 
+    // ✅ نص المشاركة/النسخ
     final shareText = ExportHelper.buildText(
       result: widget.result,
       occasion: null,
@@ -98,16 +106,12 @@ class _DateResultCardState extends State<DateResultCard>
                         ),
                   ),
                   const SizedBox(height: 10),
-
                   // ✅ اليوم
                   _rowItem(context, t.resultWeekday, weekdayStr),
                   const SizedBox(height: 6),
-
                   _rowItem(context, t.resultHijri, hijriStr),
                   const SizedBox(height: 6),
-
                   _rowItem(context, t.resultGregorian, gregStr),
-
                   if (widget.result.approximate) ...[
                     const SizedBox(height: 10),
                     Row(
@@ -127,9 +131,7 @@ class _DateResultCardState extends State<DateResultCard>
                       ],
                     ),
                   ],
-
                   const SizedBox(height: 12),
-
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
@@ -172,7 +174,6 @@ class _DateResultCardState extends State<DateResultCard>
   Widget _rowItem(BuildContext context, String title, String value) {
     final styleTitle = Theme.of(context).textTheme.bodyMedium;
     final styleValue = Theme.of(context).textTheme.bodyLarge;
-
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

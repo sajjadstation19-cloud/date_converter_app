@@ -9,7 +9,7 @@ class AppLocalizationsAr extends AppLocalizations {
   AppLocalizationsAr([String locale = 'ar']) : super(locale);
 
   @override
-  String get appTitle => 'محوّل التاريخ';
+  String get appTitle => 'محوّل التقاويم';
 
   @override
   String get settings => 'الإعدادات';
@@ -76,6 +76,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get themeSystem => 'حسب النظام';
+
+  @override
+  String get app_name => 'محول التقويم';
 
   @override
   String get noteAccuracy => 'قد لا تكون التواريخ دقيقة 100٪.';

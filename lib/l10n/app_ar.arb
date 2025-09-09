@@ -34,7 +34,8 @@
   "export": "تصدير",
   "exportFailed": "فشل في التصدير",
   "exportSuccess": "تم التصدير بنجاح",
-
+  "appTitle": "محوّل التقاويم",
+  "appSubtitle": "التحويل بين الهجري والميلادي",
   "resultWeekday": "اليوم",
   "resultHijri": "هجري",
   "resultGregorian": "ميلادي",

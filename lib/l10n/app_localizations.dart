@@ -101,7 +101,7 @@ abstract class AppLocalizations {
   /// No description provided for @appTitle.
   ///
   /// In en, this message translates to:
-  /// **'Date Converter'**
+  /// **'Calendar Converter'**
   String get appTitle;
 
   /// No description provided for @settings.
@@ -185,7 +185,7 @@ abstract class AppLocalizations {
   /// No description provided for @appSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'التحويل بين الهجري والميلادي'**
+  /// **'Hijri & Gregorian date conversion'**
   String get appSubtitle;
 
   /// No description provided for @system.
@@ -235,6 +235,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'System'**
   String get themeSystem;
+
+  /// No description provided for @app_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Date Converter'**
+  String get app_name;
 
   /// No description provided for @noteAccuracy.
   ///
@@ -638,6 +644,4 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
   throw FlutterError(
       'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
       'an issue with the localizations generation tool. Please file an issue '
-      'on GitHub with a reproducible sample app and the gen-l10n configuration '
-      'that was used.');
-}
+      'on GitHub with a reproducible sample app and the gen-l10n

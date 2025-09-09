@@ -23,7 +23,8 @@
   "language": "Language",
   "languageArabic": "Arabic",
   "languageEnglish": "English",
-
+  "appTitle": "Calendar Converter",
+  "appSubtitle": "Hijri & Gregorian date conversion",
   "theme": "Theme",
   "themeLight": "Light",
   "themeDark": "Dark",

@@ -3,12 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart'; // ✅ Ads
 import 'package:date_converter_app/l10n/app_localizations.dart';
-
 import '../widgets/conversion_bottom_sheet.dart';
 import '../widgets/date_result_card.dart';
 import '../widgets/settings_bottom_sheet.dart';
 import '../models/conversion_output.dart';
-
 import '../utils/occasions.dart';
 import '../utils/date_utils.dart';
 import '../utils/ad_helper.dart'; // ✅ استدعاء ملف الإعلانات
@@ -45,6 +43,7 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   void initState() {
     super.initState();
+
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
@@ -93,6 +92,7 @@ class _HomeScreenState extends State<HomeScreen>
 
     void tryShowAd() {
       if (!mounted || _cancelLoading) return;
+
       if (AdHelper.hasRewardedAd) {
         _retryTimer?.cancel();
         AdHelper.showRewardedInterstitialAd(() {
@@ -141,7 +141,6 @@ class _HomeScreenState extends State<HomeScreen>
     );
 
     if (!mounted) return;
-
     if (result != null) {
       setState(() {
         _lastResult = result;
@@ -159,8 +158,8 @@ class _HomeScreenState extends State<HomeScreen>
     final t = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
-
     final today = DateUtilsX.getToday();
+
     final isAr = Localizations.localeOf(context).languageCode == "ar";
 
     final g = today.gregorian;
@@ -200,7 +199,7 @@ class _HomeScreenState extends State<HomeScreen>
         appBar: AppBar(
           backgroundColor: const Color(0xFF4E7D5B),
           centerTitle: true,
-          leading: _buildAppBarButton(
+          leading: _buildRoundButton(
             icon: Icons.settings,
             tooltip: t.settings,
             onPressed: () {
@@ -230,7 +229,7 @@ class _HomeScreenState extends State<HomeScreen>
             ),
           ),
           actions: [
-            _buildAppBarButton(
+            _buildRoundButton(
               icon: Icons.calendar_month,
               tooltip: t.todayWord,
               onPressed: () => HapticFeedback.lightImpact(),
@@ -349,20 +348,28 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  /// 🔹 زر موحد للـ AppBar
-  Widget _buildAppBarButton(
-      {required IconData icon,
-      required String tooltip,
-      required VoidCallback onPressed}) {
+  /// 🔹 زر دائري موحّد (AppBar و BottomNav)
+  Widget _buildRoundButton({
+    required IconData icon,
+    required String tooltip,
+    required VoidCallback onPressed,
+  }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
       child: Material(
-        color: Colors.white.withOpacity(0.15),
+        color: Colors.white.withValues(alpha: 0.15),
         shape: const CircleBorder(),
-        child: IconButton(
-          icon: Icon(icon, color: Colors.white),
-          tooltip: tooltip,
-          onPressed: onPressed,
+        elevation: 2,
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: () {
+            HapticFeedback.lightImpact();
+            onPressed();
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Icon(icon, color: Colors.white),
+          ),
         ),
       ),
     );
@@ -385,32 +392,22 @@ class _HomeScreenState extends State<HomeScreen>
           borderRadius: BorderRadius.circular(14),
         ),
         textStyle: const TextStyle(fontSize: 16),
+        elevation: 3,
       ),
     );
   }
 
   /// 🔹 زر موحد للـ BottomAppBar
-  Widget _buildNavButton(
-      {required IconData icon,
-      required String label,
-      required VoidCallback onPressed,
-      bool isLoading = false}) {
-    return TextButton.icon(
+  Widget _buildNavButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onPressed,
+    bool isLoading = false,
+  }) {
+    return _buildRoundButton(
+      icon: icon,
+      tooltip: label,
       onPressed: onPressed,
-      icon: isLoading
-          ? const SizedBox(
-              width: 18,
-              height: 18,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-              ),
-            )
-          : Icon(icon, color: Colors.white),
-      label: Text(label, style: const TextStyle(color: Colors.white)),
-      style: TextButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      ),
     );
   }
 
@@ -449,7 +446,6 @@ class _TodayCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeOut,
@@ -536,7 +532,6 @@ class _LineTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
