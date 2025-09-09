@@ -43,12 +43,10 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   void initState() {
     super.initState();
-
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
     )..forward();
-
     _fadeIn = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
     _slideUp = Tween<Offset>(
       begin: const Offset(0, .12),
@@ -92,7 +90,6 @@ class _HomeScreenState extends State<HomeScreen>
 
     void tryShowAd() {
       if (!mounted || _cancelLoading) return;
-
       if (AdHelper.hasRewardedAd) {
         _retryTimer?.cancel();
         AdHelper.showRewardedInterstitialAd(() {
@@ -113,10 +110,7 @@ class _HomeScreenState extends State<HomeScreen>
       }
     }
 
-    // محاولة أولية
     tryShowAd();
-
-    // إذا ماكو إعلان → إعادة المحاولة كل ثانيتين بحد أقصى 15 ثانية
     _retryTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
       if (_cancelLoading || _retryCount >= 7) {
         timer.cancel();
@@ -139,14 +133,12 @@ class _HomeScreenState extends State<HomeScreen>
       ),
       builder: (ctx) => ConversionBottomSheet(fromGregorian: fromGregorian),
     );
-
     if (!mounted) return;
     if (result != null) {
       setState(() {
         _lastResult = result;
         _conversionCount++;
       });
-
       if (_conversionCount % 3 == 0) {
         AdHelper.showInterstitialAd();
       }
@@ -159,7 +151,6 @@ class _HomeScreenState extends State<HomeScreen>
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
     final today = DateUtilsX.getToday();
-
     final isAr = Localizations.localeOf(context).languageCode == "ar";
 
     final g = today.gregorian;
@@ -185,6 +176,8 @@ class _HomeScreenState extends State<HomeScreen>
         ? DateUtilsX.weekdayArOf(today.gregorian)
         : DateUtilsX.weekdayEnOf(today.gregorian);
 
+    const mainColor = Color(0xFF3E6649); // ✅ أخضر زيتوني أدكن
+
     return PopScope(
       canPop: !_isLoadingAd,
       onPopInvokedWithResult: (didPop, result) {
@@ -197,10 +190,10 @@ class _HomeScreenState extends State<HomeScreen>
       },
       child: Scaffold(
         appBar: AppBar(
-          backgroundColor: const Color(0xFF4E7D5B),
+          backgroundColor: mainColor,
           centerTitle: true,
-          leading: _buildRoundButton(
-            icon: Icons.settings,
+          leading: IconButton(
+            icon: const Icon(Icons.settings, color: Colors.white),
             tooltip: t.settings,
             onPressed: () {
               HapticFeedback.lightImpact();
@@ -229,8 +222,8 @@ class _HomeScreenState extends State<HomeScreen>
             ),
           ),
           actions: [
-            _buildRoundButton(
-              icon: Icons.calendar_month,
+            IconButton(
+              icon: const Icon(Icons.calendar_month, color: Colors.white),
               tooltip: t.todayWord,
               onPressed: () => HapticFeedback.lightImpact(),
             ),
@@ -287,6 +280,7 @@ class _HomeScreenState extends State<HomeScreen>
                           icon: Icons.calendar_today,
                           label: t.convertFromGregorian,
                           onPressed: () => _openConversion(fromGregorian: true),
+                          color: mainColor,
                         ),
                         const SizedBox(height: 12),
                         _buildActionButton(
@@ -294,6 +288,7 @@ class _HomeScreenState extends State<HomeScreen>
                           label: t.convertFromHijri,
                           onPressed: () =>
                               _openConversion(fromGregorian: false),
+                          color: mainColor,
                         ),
                         const SizedBox(height: 20),
                         AnimatedSwitcher(
@@ -323,7 +318,8 @@ class _HomeScreenState extends State<HomeScreen>
           ),
         ),
         bottomNavigationBar: BottomAppBar(
-          color: const Color(0xFF4E7D5B),
+          color: mainColor,
+          height: 58,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
@@ -334,6 +330,7 @@ class _HomeScreenState extends State<HomeScreen>
                   HapticFeedback.lightImpact();
                   setState(() {});
                 },
+                isHome: true,
               ),
               _buildNavButton(
                 icon: Icons.card_giftcard,
@@ -348,44 +345,56 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  /// 🔹 زر دائري موحّد (AppBar و BottomNav)
-  Widget _buildRoundButton({
+  /// 🔹 زر موحد للأزرار السفلية
+  Widget _buildNavButton({
     required IconData icon,
-    required String tooltip,
+    required String label,
     required VoidCallback onPressed,
+    bool isLoading = false,
+    bool isHome = false,
   }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-      child: Material(
-        color: Colors.white.withValues(alpha: 0.15),
-        shape: const CircleBorder(),
-        elevation: 2,
-        child: InkWell(
-          customBorder: const CircleBorder(),
-          onTap: () {
-            HapticFeedback.lightImpact();
-            onPressed();
-          },
-          child: Padding(
-            padding: const EdgeInsets.all(8),
-            child: Icon(icon, color: Colors.white),
-          ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        IconButton(
+          icon: isLoading
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                )
+              : Icon(
+                  icon,
+                  color: Colors.white,
+                  size: isHome ? 28 : 24, // ✅ إبراز الرئيسية
+                ),
+          tooltip: label,
+          onPressed: onPressed,
         ),
-      ),
+        Text(
+          label,
+          style: const TextStyle(color: Colors.white, fontSize: 12),
+        ),
+      ],
     );
   }
 
   /// 🔹 زر موحد لأزرار التحويل
-  Widget _buildActionButton(
-      {required IconData icon,
-      required String label,
-      required VoidCallback onPressed}) {
+  Widget _buildActionButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onPressed,
+    required Color color,
+  }) {
     return FilledButton.icon(
       onPressed: onPressed,
       icon: Icon(icon),
       label: Text(label),
       style: FilledButton.styleFrom(
-        backgroundColor: const Color(0xFF4E7D5B),
+        backgroundColor: color,
         foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(vertical: 14),
         shape: RoundedRectangleBorder(
@@ -394,20 +403,6 @@ class _HomeScreenState extends State<HomeScreen>
         textStyle: const TextStyle(fontSize: 16),
         elevation: 3,
       ),
-    );
-  }
-
-  /// 🔹 زر موحد للـ BottomAppBar
-  Widget _buildNavButton({
-    required IconData icon,
-    required String label,
-    required VoidCallback onPressed,
-    bool isLoading = false,
-  }) {
-    return _buildRoundButton(
-      icon: icon,
-      tooltip: label,
-      onPressed: onPressed,
     );
   }
 
@@ -526,6 +521,7 @@ class _LineTitle extends StatelessWidget {
   final IconData icon;
   final Color iconColor;
   final String text;
+
   const _LineTitle(
       {required this.icon, required this.iconColor, required this.text});
 
@@ -552,6 +548,7 @@ class _LineTitle extends StatelessWidget {
 class _OccasionList extends StatelessWidget {
   final List<String> items;
   final TextTheme textTheme;
+
   const _OccasionList({required this.items, required this.textTheme});
 
   @override
