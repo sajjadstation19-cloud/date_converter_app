@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- لون الخلفية للأيقونة -->
-    <color name="ic_launcher_background">#4E7D5B</color>
+    <color name="ic_launcher_background">#E9F3EB</color>
 
     <!-- اللون الأسود المستخدم في إشعارات Firebase -->
     <color name="black">#000000</color>

@@ -1,3 +1,4 @@
+// android/app/build.gradle.kts
 import java.util.Properties
 import java.io.FileInputStream
 
@@ -5,7 +6,6 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("dev.flutter.flutter-gradle-plugin")
-
 }
 
 android {
@@ -44,9 +44,9 @@ android {
 
         create("release") {
             storeFile = keystoreProperties.getProperty("storeFile")?.let { file(it) }
-            storePassword = keystoreProperties.getProperty("storePassword")
-            keyAlias = keystoreProperties.getProperty("keyAlias")
-            keyPassword = keystoreProperties.getProperty("keyPassword")
+            storePassword = keystoreProperties.getProperty("storePassword")?.toString()
+            keyAlias = keystoreProperties.getProperty("keyAlias")?.toString()
+            keyPassword = keystoreProperties.getProperty("keyPassword")?.toString()
         }
     }
 
@@ -54,8 +54,10 @@ android {
         release {
             signingConfig = signingConfigs.getByName("release")
 
+            // ✅ تقليل الحجم
             isMinifyEnabled = true
             isShrinkResources = true
+
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -63,6 +65,7 @@ android {
         }
 
         debug {
+            // نستخدم نفس التوقيع حتى بالـ debug
             signingConfig = signingConfigs.getByName("release")
         }
     }
@@ -71,4 +74,3 @@ android {
 flutter {
     source = "../.."
 }
-

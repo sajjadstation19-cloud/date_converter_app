@@ -1,5 +1,4 @@
 <!-- android/app/src/main/AndroidManifest.xml -->
-
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.dbs.dateconverter">
 
@@ -42,7 +41,7 @@
             </intent-filter>
         </activity>
 
-        <!-- ✅ AdMob App ID -->
+        <!-- ✅ AdMob App ID الحقيقي -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="ca-app-pub-9730483404299391~9209437226"/>

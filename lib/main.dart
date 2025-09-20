@@ -7,7 +7,6 @@ import 'utils/ad_helper.dart'; // ✅ إعلان App Open
 
 // Localization
 import 'package:date_converter_app/l10n/app_localizations.dart';
-
 import 'screens/home_screen.dart';
 import 'providers/theme_provider.dart';
 import 'providers/locale_provider.dart';
@@ -24,8 +23,8 @@ Future<void> main() async {
   // تحميل إعدادات الثيم واللغة
   final themeProvider = ThemeProvider();
   final localeProvider = LocaleProvider();
-
   await Future.wait([themeProvider.load(), localeProvider.load()]);
+
   debugPrint(
       "✅ [LOG] Providers تهيأت بعد: ${DateTime.now().difference(startTime).inMilliseconds}ms");
 
@@ -48,6 +47,10 @@ Future<void> main() async {
     debugPrint(
         "✅ [LOG] MobileAds تهيأت بعد: ${DateTime.now().difference(startTime).inMilliseconds}ms");
 
+    // ✅ نحمل كل أنواع الإعلانات مرة وحدة
+    AdHelper.preloadAllAds();
+
+    // ✅ نحمل إعلان الفتح بشكل صريح (يبقى موجود)
     AdHelper.loadAppOpenAd();
     debugPrint("✅ [LOG] AppOpenAd انطلب تحميله");
   });

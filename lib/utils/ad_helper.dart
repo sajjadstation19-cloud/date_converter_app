@@ -1,41 +1,48 @@
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
-/// 🔹 Helper Class لإدارة كل أنواع الإعلانات
+/// 🔹 Helper Class لإدارة الإعلانات (Banner, Interstitial, Rewarded, App Open)
 class AdHelper {
-  // ✅ Banner Ad Unit ID
-  static const String bannerAdUnitId = "ca-app-pub-9730483404299391/9271351671";
-
-  // ✅ Interstitial Ad Unit ID
+  // ✅ IDs الحقيقية من حسابك
   static const String interstitialAdUnitId =
-      "ca-app-pub-9730483404299391/4741897965";
-
-  // ✅ Rewarded Interstitial Ad Unit ID
+      "ca-app-pub-9730483404299391/1297192530"; // إعلان بيني
   static const String rewardedInterstitialAdUnitId =
-      "ca-app-pub-9730483404299391/6864394776";
-
-  // ✅ App Open Ad Unit ID
+      "ca-app-pub-9730483404299391/3017468317"; // إعلان بيني مكافأة
+  static const String bannerAdUnitId =
+      "ca-app-pub-9730483404299391/5970934712"; // إعلان بانر
   static const String appOpenAdUnitId =
-      "ca-app-pub-9730483404299391/4788895770";
+      "ca-app-pub-9730483404299391/7818422750"; // إعلان فتح التطبيق
+
+  /// 🕒 أداة طباعة مع التوقيت
+  static void _log(String message) {
+    final now = DateTime.now();
+    final time =
+        "${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}";
+    debugPrint("[Ad][$time] $message");
+  }
 
   // ------------------------------
   // Banner Ad
   // ------------------------------
+  static bool isBannerReady = false;
   static BannerAd createBannerAd({
     required VoidCallback onLoaded,
     VoidCallback? onFailed,
   }) {
+    _log("📥 Requesting Banner Ad...");
     final ad = BannerAd(
       adUnitId: bannerAdUnitId,
       size: AdSize.banner,
       request: const AdRequest(),
       listener: BannerAdListener(
         onAdLoaded: (ad) {
-          debugPrint("✅ Banner Ad Loaded");
+          isBannerReady = true;
+          _log("✅ Banner Ad Loaded & Ready");
           onLoaded();
         },
         onAdFailedToLoad: (ad, error) {
-          debugPrint("❌ Banner Ad failed: $error");
+          isBannerReady = false;
+          _log("❌ Banner Ad failed: ${error.code} | ${error.message}");
           ad.dispose();
           if (onFailed != null) onFailed();
         },
@@ -49,18 +56,20 @@ class AdHelper {
   // Interstitial Ad
   // ------------------------------
   static InterstitialAd? _interstitialAd;
+  static bool get hasInterstitial => _interstitialAd != null;
 
   static void loadInterstitialAd() {
+    _log("📥 Requesting Interstitial Ad...");
     InterstitialAd.load(
       adUnitId: interstitialAdUnitId,
       request: const AdRequest(),
       adLoadCallback: InterstitialAdLoadCallback(
         onAdLoaded: (ad) {
           _interstitialAd = ad;
-          debugPrint("✅ Interstitial Ad Loaded");
+          _log("✅ Interstitial Ad Loaded & Ready");
         },
         onAdFailedToLoad: (error) {
-          debugPrint("❌ Interstitial Ad failed: $error");
+          _log("❌ Interstitial Ad failed: ${error.code} | ${error.message}");
           _interstitialAd = null;
         },
       ),
@@ -69,11 +78,12 @@ class AdHelper {
 
   static void showInterstitialAd() {
     if (_interstitialAd != null) {
+      _log("📺 Showing Interstitial Ad...");
       _interstitialAd!.show();
       _interstitialAd = null;
-      loadInterstitialAd(); // لإعادة التحميل
+      loadInterstitialAd(); // إعادة التحميل مباشرة
     } else {
-      debugPrint("⚠️ Interstitial Ad غير جاهز بعد");
+      _log("⚠️ Interstitial Ad غير جاهز بعد");
     }
   }
 
@@ -81,59 +91,60 @@ class AdHelper {
   // Rewarded Interstitial Ad
   // ------------------------------
   static RewardedInterstitialAd? _rewardedInterstitialAd;
-
-  /// 🔹 Getter حتى نعرف إذا الإعلان جاهز
   static bool get hasRewardedAd => _rewardedInterstitialAd != null;
 
   static void loadRewardedInterstitialAd({VoidCallback? onLoaded}) {
+    _log("📥 Requesting Rewarded Interstitial Ad...");
     RewardedInterstitialAd.load(
       adUnitId: rewardedInterstitialAdUnitId,
       request: const AdRequest(),
       rewardedInterstitialAdLoadCallback: RewardedInterstitialAdLoadCallback(
         onAdLoaded: (ad) {
           _rewardedInterstitialAd = ad;
-          debugPrint("✅ Rewarded Interstitial Ad Loaded");
+          _log("✅ Rewarded Interstitial Ad Loaded & Ready");
           onLoaded?.call();
         },
         onAdFailedToLoad: (error) {
-          debugPrint("❌ Rewarded Interstitial failed: $error");
+          _log(
+              "❌ Rewarded Interstitial failed: ${error.code} | ${error.message}");
           _rewardedInterstitialAd = null;
         },
       ),
     );
   }
 
-  /// ✅ يدعم onFail إذا الإعلان مو جاهز
   static void showRewardedInterstitialAd(
     VoidCallback onRewardEarned, {
     VoidCallback? onFail,
   }) {
     if (_rewardedInterstitialAd != null) {
+      _log("📺 Showing Rewarded Interstitial Ad...");
       _rewardedInterstitialAd!.fullScreenContentCallback =
           FullScreenContentCallback(
         onAdDismissedFullScreenContent: (ad) {
+          _log("ℹ️ Rewarded Ad dismissed");
           ad.dispose();
           _rewardedInterstitialAd = null;
-          loadRewardedInterstitialAd(); // إعادة التحميل بعد الغلق
+          loadRewardedInterstitialAd();
         },
         onAdFailedToShowFullScreenContent: (ad, error) {
+          _log(
+              "❌ Rewarded Ad failed to show: ${error.code} | ${error.message}");
           ad.dispose();
           _rewardedInterstitialAd = null;
           onFail?.call();
           loadRewardedInterstitialAd();
         },
       );
-
       _rewardedInterstitialAd!.show(
         onUserEarnedReward: (ad, reward) {
-          debugPrint("🎁 User earned reward: ${reward.amount}");
+          _log("🎁 User earned reward: ${reward.amount} ${reward.type}");
           onRewardEarned();
         },
       );
-
       _rewardedInterstitialAd = null;
     } else {
-      debugPrint("⚠️ Rewarded Interstitial Ad غير جاهز بعد");
+      _log("⚠️ Rewarded Interstitial Ad غير جاهز بعد");
       if (onFail != null) onFail();
     }
   }
@@ -142,18 +153,20 @@ class AdHelper {
   // App Open Ad
   // ------------------------------
   static AppOpenAd? _appOpenAd;
+  static bool get hasAppOpen => _appOpenAd != null;
 
   static void loadAppOpenAd() {
+    _log("📥 Requesting App Open Ad...");
     AppOpenAd.load(
       adUnitId: appOpenAdUnitId,
       request: const AdRequest(),
       adLoadCallback: AppOpenAdLoadCallback(
         onAdLoaded: (ad) {
           _appOpenAd = ad;
-          debugPrint("✅ App Open Ad Loaded");
+          _log("✅ App Open Ad Loaded & Ready");
         },
         onAdFailedToLoad: (error) {
-          debugPrint("❌ App Open Ad failed: $error");
+          _log("❌ App Open Ad failed: ${error.code} | ${error.message}");
           _appOpenAd = null;
         },
       ),
@@ -162,11 +175,22 @@ class AdHelper {
 
   static void showAppOpenAd() {
     if (_appOpenAd != null) {
+      _log("📺 Showing App Open Ad...");
       _appOpenAd!.show();
       _appOpenAd = null;
-      loadAppOpenAd(); // لإعادة التحميل
+      loadAppOpenAd();
     } else {
-      // debugPrint("⚠️ App Open Ad غير جاهز بعد");
+      _log("⚠️ App Open Ad غير جاهز بعد");
     }
+  }
+
+  // ------------------------------
+  // ✅ Preload All Ads
+  // ------------------------------
+  static void preloadAllAds() {
+    _log("🚀 Preloading all ads...");
+    loadInterstitialAd();
+    loadRewardedInterstitialAd();
+    loadAppOpenAd();
   }
 }

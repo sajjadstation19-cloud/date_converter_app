@@ -4,10 +4,10 @@ import 'package:flutter/services.dart';
 import '../models/conversion_output.dart';
 import '../utils/date_utils.dart';
 import '../utils/export_helper.dart';
+import '../utils/ad_helper.dart'; // ✅ لازم نستدعي AdHelper
 
 class DateResultCard extends StatefulWidget {
   final ConversionOutput result;
-
   const DateResultCard({super.key, required this.result});
 
   @override
@@ -52,21 +52,21 @@ class _DateResultCardState extends State<DateResultCard>
     // ✅ تحديد اللغة
     final isAr = Localizations.localeOf(context).languageCode == "ar";
 
-    // ✅ صياغة التاريخ الهجري حسب اللغة
+    // ✅ صياغة التاريخ الهجري
     final hijriMonth = isAr
         ? DateUtilsX.hijriMonthsAr[widget.result.hijri.hMonth - 1]
         : DateUtilsX.hijriMonthsEn[widget.result.hijri.hMonth - 1];
     final hijriStr =
         "${widget.result.hijri.hYear} هـ ($hijriMonth ${widget.result.hijri.hDay})";
 
-    // ✅ صياغة التاريخ الميلادي حسب اللغة
+    // ✅ صياغة التاريخ الميلادي
     final gregMonth = isAr
         ? DateUtilsX.gregorianMonthsAr[widget.result.gregorian.month - 1]
         : DateUtilsX.gregorianMonthsEn[widget.result.gregorian.month - 1];
     final gregStr =
         "${widget.result.gregorian.year} ($gregMonth ${widget.result.gregorian.day})";
 
-    // ✅ اختيار اليوم حسب اللغة
+    // ✅ اختيار اليوم
     final weekdayStr = isAr
         ? widget.result.weekdayAr
         : DateUtilsX.weekdayEnOf(widget.result.gregorian);
@@ -106,12 +106,14 @@ class _DateResultCardState extends State<DateResultCard>
                         ),
                   ),
                   const SizedBox(height: 10),
+
                   // ✅ اليوم
                   _rowItem(context, t.resultWeekday, weekdayStr),
                   const SizedBox(height: 6),
                   _rowItem(context, t.resultHijri, hijriStr),
                   const SizedBox(height: 6),
                   _rowItem(context, t.resultGregorian, gregStr),
+
                   if (widget.result.approximate) ...[
                     const SizedBox(height: 10),
                     Row(
@@ -131,7 +133,10 @@ class _DateResultCardState extends State<DateResultCard>
                       ],
                     ),
                   ],
+
                   const SizedBox(height: 12),
+
+                  // ✅ أزرار النسخ والمشاركة
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
@@ -157,7 +162,15 @@ class _DateResultCardState extends State<DateResultCard>
                         icon: Icons.share_rounded,
                         label: t.share,
                         onTap: () async {
-                          await ExportHelper.shareText(shareText);
+                          if (AdHelper.hasRewardedAd) {
+                            AdHelper.showRewardedInterstitialAd(() async {
+                              await ExportHelper.shareText(shareText);
+                            }, onFail: () async {
+                              await ExportHelper.shareText(shareText);
+                            });
+                          } else {
+                            await ExportHelper.shareText(shareText);
+                          }
                         },
                       ),
                     ],

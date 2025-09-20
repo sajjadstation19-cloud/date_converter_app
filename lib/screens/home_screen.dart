@@ -1,6 +1,5 @@
 import 'dart:async'; // ✅ مهم للمؤقت
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart'; // ✅ Ads
 import 'package:date_converter_app/l10n/app_localizations.dart';
 import '../widgets/conversion_bottom_sheet.dart';
@@ -27,26 +26,24 @@ class _HomeScreenState extends State<HomeScreen>
 
   ConversionOutput? _lastResult;
 
-  // ✅ Banner Ad
-  BannerAd? _bannerAd;
-  bool _isBannerReady = false;
+  // ✅ Banner Ads
+  BannerAd? _bannerAdTop;
+  BannerAd? _bannerAdBottom;
+  bool _isBannerTopReady = false;
+  bool _isBannerBottomReady = false;
 
   // ✅ Interstitial Ad counter
   int _conversionCount = 0;
 
-  // ✅ انتظار إعلان المزيد
-  bool _isLoadingAd = false;
-  bool _cancelLoading = false;
-  Timer? _retryTimer;
-  int _retryCount = 0;
-
   @override
   void initState() {
     super.initState();
+
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
     )..forward();
+
     _fadeIn = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
     _slideUp = Tween<Offset>(
       begin: const Offset(0, .12),
@@ -57,10 +54,17 @@ class _HomeScreenState extends State<HomeScreen>
       end: 1,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
 
-    // ✅ تحميل إعلان بانر
-    _bannerAd = AdHelper.createBannerAd(
+    // ✅ تحميل إعلان بانر علوي
+    _bannerAdTop = AdHelper.createBannerAd(
       onLoaded: () {
-        setState(() => _isBannerReady = true);
+        setState(() => _isBannerTopReady = true);
+      },
+    );
+
+    // ✅ تحميل إعلان بانر سفلي
+    _bannerAdBottom = AdHelper.createBannerAd(
+      onLoaded: () {
+        setState(() => _isBannerBottomReady = true);
       },
     );
 
@@ -74,65 +78,47 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   void dispose() {
     _controller.dispose();
-    _bannerAd?.dispose();
-    _retryTimer?.cancel(); // ✅ تنظيف المؤقت
+    _bannerAdTop?.dispose();
+    _bannerAdBottom?.dispose();
     super.dispose();
   }
 
-  /// إعلان مكافأة (إجباري عند الضغط على زر المزيد)
-  void _showRewardedAd() {
-    HapticFeedback.lightImpact();
-    setState(() {
-      _isLoadingAd = true;
-      _cancelLoading = false;
-      _retryCount = 0;
-    });
-
-    void tryShowAd() {
-      if (!mounted || _cancelLoading) return;
-      if (AdHelper.hasRewardedAd) {
-        _retryTimer?.cancel();
-        AdHelper.showRewardedInterstitialAd(() {
-          if (!mounted) return;
-          setState(() => _isLoadingAd = false);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text("🎬 ${AppLocalizations.of(context).watchAdReward}"),
-              behavior: SnackBarBehavior.floating,
+  /// ✅ نافذة التحويل مع Animation سلس + Material
+  Future<void> _openConversion({required bool fromGregorian}) async {
+    final result = await Navigator.of(context).push(
+      PageRouteBuilder<ConversionOutput>(
+        opaque: false,
+        barrierDismissible: true,
+        barrierColor: Colors.black54,
+        pageBuilder: (context, _, __) {
+          return Align(
+            alignment: Alignment.bottomCenter,
+            child: FractionallySizedBox(
+              heightFactor: 0.75, // 🔹 قللنا الارتفاع لتخفيف الفراغ
+              child: Material(
+                color: Colors.transparent,
+                child: ConversionBottomSheet(fromGregorian: fromGregorian),
+              ),
             ),
           );
-          AdHelper.loadRewardedInterstitialAd();
-        }, onFail: () {
-          if (!mounted) return;
-          setState(() => _isLoadingAd = false);
-          AdHelper.loadRewardedInterstitialAd();
-        });
-      }
-    }
-
-    tryShowAd();
-    _retryTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
-      if (_cancelLoading || _retryCount >= 7) {
-        timer.cancel();
-        if (mounted) setState(() => _isLoadingAd = false);
-        return;
-      }
-      _retryCount++;
-      tryShowAd();
-    });
-  }
-
-  Future<void> _openConversion({required bool fromGregorian}) async {
-    HapticFeedback.lightImpact();
-    final result = await showModalBottomSheet<ConversionOutput>(
-      context: context,
-      useSafeArea: true,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        },
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          final slideTween = Tween<Offset>(
+            begin: const Offset(0, 1),
+            end: Offset.zero,
+          ).chain(CurveTween(curve: Curves.easeOutCubic));
+          final fadeTween = Tween<double>(begin: 0, end: 1);
+          return SlideTransition(
+            position: animation.drive(slideTween),
+            child: FadeTransition(
+              opacity: animation.drive(fadeTween),
+              child: child,
+            ),
+          );
+        },
       ),
-      builder: (ctx) => ConversionBottomSheet(fromGregorian: fromGregorian),
     );
+
     if (!mounted) return;
     if (result != null) {
       setState(() {
@@ -178,211 +164,144 @@ class _HomeScreenState extends State<HomeScreen>
 
     const mainColor = Color(0xFF3E6649); // ✅ أخضر زيتوني أدكن
 
-    return PopScope(
-      canPop: !_isLoadingAd,
-      onPopInvokedWithResult: (didPop, result) {
-        if (!didPop && _isLoadingAd) {
-          setState(() {
-            _isLoadingAd = false;
-            _cancelLoading = true;
-          });
-        }
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          backgroundColor: mainColor,
-          centerTitle: true,
-          leading: IconButton(
-            icon: const Icon(Icons.settings, color: Colors.white),
-            tooltip: t.settings,
-            onPressed: () {
-              HapticFeedback.lightImpact();
-              showModalBottomSheet(
-                context: context,
-                useSafeArea: true,
-                isScrollControlled: true,
-                shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-                ),
-                builder: (ctx) => const SettingsBottomSheet(),
-              );
-            },
-          ),
-          title: Hero(
-            tag: "app_title",
-            child: Material(
-              color: Colors.transparent,
-              child: Text(
-                t.appTitle,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: mainColor,
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.settings, color: Colors.white),
+          tooltip: t.settings,
+          onPressed: () {
+            showModalBottomSheet(
+              context: context,
+              useSafeArea: true,
+              isScrollControlled: true,
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              builder: (ctx) => const SettingsBottomSheet(),
+            );
+          },
+        ),
+        title: Hero(
+          tag: "app_title",
+          child: Material(
+            color: Colors.transparent,
+            child: Text(
+              t.appTitle,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
               ),
             ),
           ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.calendar_month, color: Colors.white),
-              tooltip: t.todayWord,
-              onPressed: () => HapticFeedback.lightImpact(),
-            ),
-          ],
         ),
-        body: GestureDetector(
-          onTap: () {
-            if (_isLoadingAd) {
-              setState(() {
-                _isLoadingAd = false;
-                _cancelLoading = true;
-              });
-            }
-          },
-          child: Container(
-            color: theme.brightness == Brightness.dark
-                ? const Color(0xFF121212)
-                : const Color(0xFFE9F3EB),
-            child: SafeArea(
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.all(16),
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 720),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        SlideTransition(
-                          position: _slideUp,
-                          child: FadeTransition(
-                            opacity: _fadeIn,
-                            child: ScaleTransition(
-                              scale: _scaleIn,
-                              child: _TodayCard(
-                                weekday: weekday,
-                                gregTitle:
-                                    "${t.todayGregorianTitle} ${t.todayWord}",
-                                gregText: gregText,
-                                gregOccasions: gregorianOccasions,
-                                hijriTitle:
-                                    "${t.todayHijriTitle} ${t.todayWord}",
-                                hijriText: hijriText,
-                                hijriOccasions: hijriOccasions,
-                                showApproxNote:
-                                    today.approximate ? t.noteAccuracy : null,
-                                textTheme: textTheme,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.calendar_month, color: Colors.white),
+            tooltip: t.todayWord,
+            onPressed: () {},
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          // 🔼 بانر علوي
+          if (_isBannerTopReady && _bannerAdTop != null)
+            SizedBox(
+              height: _bannerAdTop!.size.height.toDouble(),
+              width: _bannerAdTop!.size.width.toDouble(),
+              child: AdWidget(ad: _bannerAdTop!),
+            ),
+          // 🔹 محتوى الصفحة
+          Expanded(
+            child: Container(
+              color: theme.brightness == Brightness.dark
+                  ? const Color(0xFF121212)
+                  : const Color(0xFFE9F3EB),
+              child: SafeArea(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.all(16),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 720),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          SlideTransition(
+                            position: _slideUp,
+                            child: FadeTransition(
+                              opacity: _fadeIn,
+                              child: ScaleTransition(
+                                scale: _scaleIn,
+                                child: _TodayCard(
+                                  weekday: weekday,
+                                  gregTitle:
+                                      "${t.todayGregorianTitle} ${t.todayWord}",
+                                  gregText: gregText,
+                                  gregOccasions: gregorianOccasions,
+                                  hijriTitle:
+                                      "${t.todayHijriTitle} ${t.todayWord}",
+                                  hijriText: hijriText,
+                                  hijriOccasions: hijriOccasions,
+                                  showApproxNote:
+                                      today.approximate ? t.noteAccuracy : null,
+                                  textTheme: textTheme,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 24),
-                        _buildActionButton(
-                          icon: Icons.calendar_today,
-                          label: t.convertFromGregorian,
-                          onPressed: () => _openConversion(fromGregorian: true),
-                          color: mainColor,
-                        ),
-                        const SizedBox(height: 12),
-                        _buildActionButton(
-                          icon: Icons.nightlight_round,
-                          label: t.convertFromHijri,
-                          onPressed: () =>
-                              _openConversion(fromGregorian: false),
-                          color: mainColor,
-                        ),
-                        const SizedBox(height: 20),
-                        AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 300),
-                          switchInCurve: Curves.easeIn,
-                          switchOutCurve: Curves.easeOut,
-                          child: _lastResult == null
-                              ? const SizedBox.shrink()
-                              : DateResultCard(
-                                  key: ValueKey(_lastResult),
-                                  result: _lastResult!,
-                                ),
-                        ),
-                        const SizedBox(height: 24),
-                        if (_isBannerReady && _bannerAd != null)
-                          SizedBox(
-                            height: _bannerAd!.size.height.toDouble(),
-                            width: _bannerAd!.size.width.toDouble(),
-                            child: AdWidget(ad: _bannerAd!),
+                          const SizedBox(height: 16), // 🔹 قللنا الفراغ
+                          _buildActionButton(
+                            icon: Icons.calendar_today,
+                            label: t.convertFromGregorian,
+                            onPressed: () =>
+                                _openConversion(fromGregorian: true),
+                            color: mainColor,
                           ),
-                      ],
+                          const SizedBox(height: 10),
+                          _buildActionButton(
+                            icon: Icons.nightlight_round,
+                            label: t.convertFromHijri,
+                            onPressed: () =>
+                                _openConversion(fromGregorian: false),
+                            color: mainColor,
+                          ),
+                          const SizedBox(height: 16),
+                          AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 300),
+                            switchInCurve: Curves.easeIn,
+                            switchOutCurve: Curves.easeOut,
+                            child: _lastResult == null
+                                ? const SizedBox.shrink()
+                                : DateResultCard(
+                                    key: ValueKey(_lastResult),
+                                    result: _lastResult!,
+                                  ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
-        bottomNavigationBar: BottomAppBar(
-          color: mainColor,
-          height: 58,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildNavButton(
-                icon: Icons.home,
-                label: t.home,
-                onPressed: () {
-                  HapticFeedback.lightImpact();
-                  setState(() {});
-                },
-                isHome: true,
-              ),
-              _buildNavButton(
-                icon: Icons.card_giftcard,
-                label: t.moreButton,
-                onPressed: _isLoadingAd ? () {} : _showRewardedAd,
-                isLoading: _isLoadingAd,
-              ),
-            ],
+          // 🔽 بانر سفلي ثابت
+          SizedBox(
+            height: _bannerAdBottom?.size.height.toDouble() ?? 50,
+            width: _bannerAdBottom?.size.width.toDouble() ?? double.infinity,
+            child: _isBannerBottomReady && _bannerAdBottom != null
+                ? AdWidget(ad: _bannerAdBottom!)
+                : const SizedBox(),
           ),
-        ),
+        ],
       ),
     );
   }
 
-  /// 🔹 زر موحد للأزرار السفلية
-  Widget _buildNavButton({
-    required IconData icon,
-    required String label,
-    required VoidCallback onPressed,
-    bool isLoading = false,
-    bool isHome = false,
-  }) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        IconButton(
-          icon: isLoading
-              ? const SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                  ),
-                )
-              : Icon(
-                  icon,
-                  color: Colors.white,
-                  size: isHome ? 28 : 24, // ✅ إبراز الرئيسية
-                ),
-          tooltip: label,
-          onPressed: onPressed,
-        ),
-        Text(
-          label,
-          style: const TextStyle(color: Colors.white, fontSize: 12),
-        ),
-      ],
-    );
-  }
-
-  /// 🔹 زر موحد لأزرار التحويل
+  /// 🔹 زر موحد لأزرار التحويل (Ripple طبيعي)
   Widget _buildActionButton({
     required IconData icon,
     required String label,
@@ -415,6 +334,7 @@ class _HomeScreenState extends State<HomeScreen>
   }
 }
 
+// باقي الكلاسات مثل ما هي 👇
 class _TodayCard extends StatelessWidget {
   final String weekday;
   final String gregTitle;
@@ -478,9 +398,9 @@ class _TodayCard extends StatelessWidget {
                 const SizedBox(height: 8),
                 _OccasionList(items: gregOccasions, textTheme: textTheme),
               ],
-              const SizedBox(height: 16),
-              Divider(color: theme.dividerColor.withValues(alpha: .25)),
               const SizedBox(height: 12),
+              Divider(color: theme.dividerColor.withValues(alpha: .25)),
+              const SizedBox(height: 10),
               _LineTitle(
                 icon: Icons.nightlight_round,
                 iconColor: Colors.deepPurple,
@@ -499,7 +419,7 @@ class _TodayCard extends StatelessWidget {
                 _OccasionList(items: hijriOccasions, textTheme: textTheme),
               ],
               if (showApproxNote != null) ...[
-                const SizedBox(height: 12),
+                const SizedBox(height: 10),
                 Text(
                   showApproxNote!,
                   style: textTheme.bodySmall?.copyWith(
@@ -521,7 +441,6 @@ class _LineTitle extends StatelessWidget {
   final IconData icon;
   final Color iconColor;
   final String text;
-
   const _LineTitle(
       {required this.icon, required this.iconColor, required this.text});
 
@@ -548,7 +467,6 @@ class _LineTitle extends StatelessWidget {
 class _OccasionList extends StatelessWidget {
   final List<String> items;
   final TextTheme textTheme;
-
   const _OccasionList({required this.items, required this.textTheme});
 
   @override
